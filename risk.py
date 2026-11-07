@@ -108,13 +108,18 @@ def position_size_mxn(capital_ref, risk_pct, stop_loss_pct, max_mxn):
     return max(1.0, min(computed, max_mxn))
 
 
-def compute_pnl(entry_price, sell_price, sold_btc):
-    """Calcula el PnL en MXN y en porcentaje.
+def compute_pnl(entry_price, sell_price, sold_btc, fee_rate=0.0):
+    """Calcula el PnL en MXN y en porcentaje, descontando comisiones de ida y vuelta.
+
+    Args:
+        fee_rate: comisión por lado (ej. 0.0078 para taker de Bitso → ~1.56% round-trip).
+                  0.0 para simulaciones sin comisiones.
 
     Returns:
         (pnl_mxn, pnl_pct) — positivo = ganancia, negativo = pérdida.
-        No descuenta comisiones (eso queda para Fase 4).
     """
-    pnl_mxn = (sell_price - entry_price) * sold_btc
-    pnl_pct = (sell_price - entry_price) / entry_price * 100
+    entry_cost    = entry_price * sold_btc * (1 + fee_rate)
+    sell_proceeds = sell_price  * sold_btc * (1 - fee_rate)
+    pnl_mxn = sell_proceeds - entry_cost
+    pnl_pct = pnl_mxn / entry_cost * 100 if entry_cost > 0 else 0.0
     return pnl_mxn, pnl_pct

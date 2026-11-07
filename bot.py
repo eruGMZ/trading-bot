@@ -22,6 +22,7 @@ from commands import handle_command
 from config import (
     BITSO_API_KEY,
     BITSO_API_SECRET,
+    BITSO_TAKER_FEE,
     BOT_MODE,
     CAPITAL_REF_MXN,
     DAILY_REPORT_HOUR,
@@ -352,6 +353,7 @@ if __name__ == "__main__":
         min_hours=MIN_HOURS_BETWEEN_TRADES,
         capital_ref=CAPITAL_REF_MXN,
         daily_loss_pct=DAILY_LOSS_PCT,
+        taker_fee=BITSO_TAKER_FEE,
     )
     trade_log.init_db(TRADE_LOG_FILE)
     _reconcile_on_start()

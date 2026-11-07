@@ -122,6 +122,19 @@ class ComputePnlTests(unittest.TestCase):
         self.assertEqual(pnl_mxn, 0.0)
         self.assertEqual(pnl_pct, 0.0)
 
+    def test_fee_reduces_profit(self):
+        # Con comisión, el mismo movimiento de precio produce menos ganancia.
+        pnl_sin_fee, _ = risk.compute_pnl(1_000_000, 1_020_000, 0.001)
+        pnl_con_fee, _ = risk.compute_pnl(1_000_000, 1_020_000, 0.001, fee_rate=0.0078)
+        self.assertLess(pnl_con_fee, pnl_sin_fee)
+
+    def test_fee_turns_breakeven_into_loss(self):
+        # Mismo precio de entrada y salida con fee 0.78%: round-trip cuesta ~1.56%.
+        # entry_cost = 1000 * 1.0078 = 1007.8  |  proceeds = 1000 * 0.9922 = 992.2
+        pnl_mxn, pnl_pct = risk.compute_pnl(1_000_000, 1_000_000, 0.001, fee_rate=0.0078)
+        self.assertAlmostEqual(pnl_mxn, -15.6, places=4)
+        self.assertLess(pnl_pct, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

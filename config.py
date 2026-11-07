@@ -57,5 +57,8 @@ RSI_BUY                  = float(os.getenv("RSI_BUY", "30"))
 RSI_SELL                 = float(os.getenv("RSI_SELL", "70"))
 DAILY_REPORT_HOUR        = int(os.getenv("DAILY_REPORT_HOUR", "23"))
 
+# Comisión taker de Bitso (0.78%). Se aplica en compra y venta; round-trip ≈ 1.56%.
+BITSO_TAKER_FEE = float(os.getenv("BITSO_TAKER_FEE", "0.0078"))
+
 # Si al arrancar hay BTC en Bitso por encima de este valor sin posición registrada, se bloquea.
 RECONCILE_DUST_MXN = 10.0
