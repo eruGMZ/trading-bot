@@ -1,0 +1,33 @@
+# Secretos y configuración local (tokens de Telegram, API keys del exchange)
+.env
+.env.*
+!.env.example
+
+# Python: caché y binarios compilados
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+ENV/
+
+# Tests y herramientas de análisis
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Logs y archivos generados en ejecución
+*.log
+bot.log
+rsi_cache.json
+
+# Editores y sistema operativo
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
