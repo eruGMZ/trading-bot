@@ -13,6 +13,13 @@ def telegram_is_configured():
     return bool(TELEGRAM_BOT_TOKEN)
 
 
+def is_authorized_chat(chat_id, allowed_chat_id):
+    """Solo el chat configurado puede dar órdenes. Si no hay chat configurado, nadie puede."""
+    if allowed_chat_id in (None, ""):
+        return False
+    return str(chat_id) == str(allowed_chat_id)
+
+
 def send_message(chat_id, text):
     return requests.post(
         f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",

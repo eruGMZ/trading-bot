@@ -25,6 +25,10 @@ htmlcov/
 bot.log
 rsi_cache.json
 
+# Estado persistente del bot (posición y contadores) y archivos temporales de escritura
+state.json
+.state-*.tmp
+
 # Editores y sistema operativo
 .vscode/
 .idea/
