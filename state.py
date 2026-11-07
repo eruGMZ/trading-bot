@@ -14,17 +14,24 @@ class BotState:
     inmutable en lugar de manipular el dict directamente.
     """
 
-    def __init__(self, path, mode, max_trades=3, max_losses=2, min_hours=1):
+    def __init__(self, path, mode,
+                 max_trades=3, max_losses=2, min_hours=1,
+                 capital_ref=5000.0, daily_loss_pct=0.03):
         self._lock = threading.Lock()
         self._path = path
         today = date.today().isoformat()
         with self._lock:
             self._s = load_state(path, mode, today)
             # Inyectar constantes de riesgo para que can_trade() las encuentre en el snapshot.
-            self._s["max_trades"] = max_trades
-            self._s["max_losses"] = max_losses
-            self._s["min_hours"] = min_hours
-            self._s["mode"] = mode
+            self._s["max_trades"]    = max_trades
+            self._s["max_losses"]    = max_losses
+            self._s["min_hours"]     = min_hours
+            self._s["capital_ref"]   = capital_ref
+            self._s["daily_loss_pct"] = daily_loss_pct
+            self._s["mode"]          = mode
+            # peak_equity arranca en capital_ref si no hay valor guardado.
+            if self._s.get("peak_equity") is None:
+                self._s["peak_equity"] = capital_ref
             self._persist()
 
     # ── Lectura ───────────────────────────────────────────────────────────────
@@ -80,11 +87,11 @@ class BotState:
         with self._lock:
             self._s["position"] = {
                 "entry_price": price,
-                "amount_btc": amount_mxn / price,
-                "entry_time": now,
+                "amount_btc":  amount_mxn / price,
+                "entry_time":  now,
             }
-            self._s["trades_today"] += 1
-            self._s["last_trade_time"] = now
+            self._s["trades_today"]    += 1
+            self._s["last_trade_time"]  = now
             self._persist()
 
     def close_position(self, sell_price, sold_btc):
@@ -105,6 +112,13 @@ class BotState:
             self._s["position"] = None
             self._persist()
         return pnl_mxn, pnl_pct
+
+    def update_peak_equity(self, current_equity):
+        """Actualiza el equity máximo si el actual es mayor."""
+        with self._lock:
+            if current_equity > self._s.get("peak_equity", 0):
+                self._s["peak_equity"] = current_equity
+                self._persist()
 
     def mark_daily_report_sent(self, today):
         with self._lock:

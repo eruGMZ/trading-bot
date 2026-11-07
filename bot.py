@@ -8,6 +8,7 @@ Responsabilidades de este módulo:
 Las reglas de negocio viven en risk.py.
 El estado thread-safe vive en state.py (BotState).
 Los comandos de Telegram viven en commands.py.
+El registro de operaciones vive en trade_log.py.
 """
 
 import logging
@@ -16,33 +17,41 @@ import time
 from datetime import date, datetime
 
 import risk
+import trade_log
 from commands import handle_command
 from config import (
     BITSO_API_KEY,
     BITSO_API_SECRET,
     BOT_MODE,
+    CAPITAL_REF_MXN,
     DAILY_REPORT_HOUR,
+    DRAWDOWN_KILL_PCT,
     IS_DRY_RUN,
     LOG_FILE,
     LOOP_SECONDS,
+    DAILY_LOSS_PCT,
     MAX_LOSSES_DAY,
+    MAX_SPREAD_PCT,
+    MAX_TRADE_MXN,
     MAX_TRADES_DAY,
     MIN_HOURS_BETWEEN_TRADES,
     MODE_TAG,
     RECONCILE_DUST_MXN,
+    RISK_PCT_PER_TRADE,
     RSI_BUY,
     RSI_SELL,
     STATE_FILE,
     STOP_LOSS_PCT,
     TELEGRAM_BOT_TOKEN,
     TELEGRAM_CHAT_ID,
-    TRADE_AMOUNT_MXN,
+    TRADE_LOG_FILE,
 )
 from exchange import (
     bitso_get_available,
-    bitso_get_ticker,
+    bitso_get_quote,
     bitso_place_order,
     format_btc,
+    bitso_get_balance,
 )
 from logsafety import RedactFilter
 from signals import read_cached_rsi
@@ -81,14 +90,14 @@ def _notify(message):
     log.info(message)
 
 
+def _current_equity():
+    """Equity estimado: capital de referencia + PnL acumulado."""
+    return CAPITAL_REF_MXN + bot_state.get("pnl_total", 0.0)
+
+
 # ── Reconciliación al arrancar ────────────────────────────────────────────────
 
 def _reconcile_on_start():
-    """Compara el estado guardado con el saldo real de Bitso.
-
-    En dry-run solo actualiza el modo. En operational verifica que el BTC
-    registrado coincide con lo que tiene Bitso; si no cuadra, bloquea el bot.
-    """
     pos = bot_state.get("position")
     stored_mode = bot_state.get("mode")
 
@@ -104,7 +113,7 @@ def _reconcile_on_start():
 
     try:
         btc = bitso_get_available("btc")
-        price = bitso_get_ticker(BOOK)
+        price = bitso_get_quote(BOOK)["last"]
     except Exception as e:
         bot_state.halt(f"no se pudo consultar Bitso al arrancar: {e}")
         return
@@ -153,12 +162,46 @@ def _execute_sell(price, reason):
     return sold, pnl_mxn, pnl_pct
 
 
+# ── Kill switch ───────────────────────────────────────────────────────────────
+
+def _check_kill_switch(price):
+    """Evalúa el drawdown global. Si supera el límite, cierra y bloquea.
+
+    Returns True si el kill switch se disparó.
+    """
+    equity = _current_equity()
+    peak = bot_state.get("peak_equity", CAPITAL_REF_MXN)
+
+    if not risk.drawdown_exceeded(equity, peak, DRAWDOWN_KILL_PCT):
+        return False
+
+    drawdown_pct = (peak - equity) / peak * 100
+    pos = bot_state.get("position")
+    if pos:
+        try:
+            result = _execute_sell(price, "kill_switch")
+            if result:
+                sold, pnl_mxn, pnl_pct = result
+                trade_log.log_close(
+                    TRADE_LOG_FILE, "kill_switch",
+                    pos["entry_price"], price, sold, pnl_mxn, pnl_pct,
+                    "kill_switch", BOT_MODE,
+                )
+        except Exception:
+            pass  # El halt se ejecuta igual; el error ya se logueó
+
+    reason = f"kill switch — drawdown {drawdown_pct:.1f}% supera el límite {DRAWDOWN_KILL_PCT*100:.0f}%"
+    bot_state.halt(reason)
+    _notify(f"{MODE_TAG}⛔ KILL SWITCH activado — drawdown {drawdown_pct:.1f}%")
+    return True
+
+
 # ── Reporte diario ────────────────────────────────────────────────────────────
 
 def _send_daily_report(today):
     snap = bot_state.snapshot()
     trades = snap.get("trades_today", 0)
-    pnl = snap.get("pnl_today", 0.0)
+    pnl    = snap.get("pnl_today", 0.0)
     losses = snap.get("losses_today", 0)
     bot_state.mark_daily_report_sent(today)
     _notify(
@@ -183,39 +226,70 @@ def _tick():
     if datetime.now().hour >= DAILY_REPORT_HOUR and snap.get("last_daily_report_date") != today:
         _send_daily_report(today)
 
-    price = bitso_get_ticker(BOOK)
-    rsi = read_cached_rsi()
-    pos = bot_state.get("position")
+    quote = bitso_get_quote(BOOK)
+    price = quote["last"]
+    rsi   = read_cached_rsi()
+    pos   = bot_state.get("position")
+
+    # ── Kill switch (prioridad máxima) ─────────────────────────────────────
+    if _check_kill_switch(price):
+        return
 
     # ── Stop-loss ──────────────────────────────────────────────────────────
     if pos and risk.needs_stop_loss(pos["entry_price"], price, STOP_LOSS_PCT):
-        result = _execute_sell(price, "stop-loss")
+        result = _execute_sell(price, "stop_loss")
         if result:
-            _, pnl_mxn, _ = result
+            sold, pnl_mxn, pnl_pct = result
+            trade_log.log_close(
+                TRADE_LOG_FILE, "stop_loss",
+                pos["entry_price"], price, sold, pnl_mxn, pnl_pct,
+                "stop_loss", BOT_MODE,
+            )
             _notify(f"{MODE_TAG}⚠️ STOP-LOSS activado @ {price:,.0f} — Pérdida: {pnl_mxn:.0f} MXN")
         return
 
     # ── Venta por RSI ──────────────────────────────────────────────────────
     if pos and risk.signal_sell(rsi, RSI_SELL):
-        result = _execute_sell(price, "RSI alto")
+        result = _execute_sell(price, "rsi_sell")
         if result:
             sold, pnl_mxn, pnl_pct = result
+            trade_log.log_close(
+                TRADE_LOG_FILE, "close",
+                pos["entry_price"], price, sold, pnl_mxn, pnl_pct,
+                "rsi_sell", BOT_MODE,
+            )
             _notify(
                 f"{MODE_TAG}🔴 VENTA BTC {sold:.8f} @ {price:,.0f} — "
                 f"PnL {pnl_mxn:+.0f} MXN ({pnl_pct:+.1f}%)"
             )
+            # Actualiza el equity máximo si cerramos con ganancia.
+            bot_state.update_peak_equity(_current_equity())
         return
 
     # ── Compra por RSI ─────────────────────────────────────────────────────
-    if risk.signal_buy(rsi, RSI_BUY):
+    if not pos and risk.signal_buy(rsi, RSI_BUY):
+        # Filtro de spread: no entrar en mercados con baja liquidez.
+        if risk.spread_too_wide(quote["spread_pct"], MAX_SPREAD_PCT):
+            log.info(
+                "Compra bloqueada: spread %.3f%% > límite %.3f%%",
+                quote["spread_pct"] * 100, MAX_SPREAD_PCT * 100,
+            )
+            return
+
         ok, reason = risk.can_trade(bot_state.snapshot())
         if not ok:
             log.info("Señal de compra ignorada: %s", reason)
             return
-        bitso_place_order(BOOK, "buy", amount_mxn=TRADE_AMOUNT_MXN)
-        bot_state.open_position(price, TRADE_AMOUNT_MXN)
+
+        trade_mxn = risk.position_size_mxn(CAPITAL_REF_MXN, RISK_PCT_PER_TRADE, STOP_LOSS_PCT, MAX_TRADE_MXN)
+        bitso_place_order(BOOK, "buy", amount_mxn=trade_mxn)
+        bot_state.open_position(price, trade_mxn)
+        trade_log.log_open(
+            TRADE_LOG_FILE, price, trade_mxn / price, trade_mxn,
+            "rsi_buy", BOT_MODE,
+        )
         _notify(
-            f"{MODE_TAG}🟢 COMPRA BTC {TRADE_AMOUNT_MXN:.0f} MXN "
+            f"{MODE_TAG}🟢 COMPRA BTC {trade_mxn:.0f} MXN "
             f"@ {price:,.0f} — RSI {rsi:.0f}"
         )
 
@@ -244,8 +318,8 @@ def telegram_listener():
         try:
             for upd in get_updates(bot_state.last_update_id + 1):
                 bot_state.bump_update_id(upd["update_id"])
-                msg = upd.get("message", {})
-                text = msg.get("text", "")
+                msg     = upd.get("message", {})
+                text    = msg.get("text", "")
                 chat_id = msg.get("chat", {}).get("id")
                 if not text or chat_id is None:
                     continue
@@ -272,12 +346,14 @@ if __name__ == "__main__":
     print(f"Bot iniciado — modo: {mode_label}")
 
     bot_state = BotState(
-        STATE_FILE,
-        BOT_MODE,
+        STATE_FILE, BOT_MODE,
         max_trades=MAX_TRADES_DAY,
         max_losses=MAX_LOSSES_DAY,
         min_hours=MIN_HOURS_BETWEEN_TRADES,
+        capital_ref=CAPITAL_REF_MXN,
+        daily_loss_pct=DAILY_LOSS_PCT,
     )
+    trade_log.init_db(TRADE_LOG_FILE)
     _reconcile_on_start()
 
     t1 = threading.Thread(target=main_loop, daemon=True)

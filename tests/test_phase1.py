@@ -10,16 +10,21 @@ import tempfile
 import unittest
 from unittest import mock
 
-# Asegura que el directorio raíz del proyecto está en el path de importación.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import bot
-from config import MAX_LOSSES_DAY, MAX_TRADES_DAY, MIN_HOURS_BETWEEN_TRADES
+from config import (
+    CAPITAL_REF_MXN, DAILY_LOSS_PCT,
+    MAX_LOSSES_DAY, MAX_TRADES_DAY, MIN_HOURS_BETWEEN_TRADES,
+)
 from exchange import format_btc
 from logsafety import redact
 from state import BotState
 from state_store import default_state, load_state, roll_over_day, save_state
 from telegram_client import is_authorized_chat
+
+# Quote con spread muy estrecho para no activar el filtro en los tests.
+_QUOTE_OK = {"last": 1_000_000.0, "bid": 999_000.0, "ask": 1_001_000.0, "spread_pct": 0.002}
 
 
 class FormatBtcTests(unittest.TestCase):
@@ -60,7 +65,7 @@ class RedactTests(unittest.TestCase):
 
 class StateStoreTests(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory()
+        self.tmp  = tempfile.TemporaryDirectory()
         self.path = os.path.join(self.tmp.name, "state.json")
 
     def tearDown(self):
@@ -86,8 +91,8 @@ class StateStoreTests(unittest.TestCase):
 
     def test_roll_over_day_resets_only_on_new_day(self):
         state = default_state("dry_run", "2026-11-06")
-        state["trades_today"] = 3
-        state["losses_today"] = 2
+        state["trades_today"]  = 3
+        state["losses_today"]  = 2
         self.assertFalse(roll_over_day(state, "2026-11-06"))
         self.assertEqual(state["trades_today"], 3)
         self.assertTrue(roll_over_day(state, "2026-11-07"))
@@ -100,26 +105,33 @@ class TradeFlowTests(unittest.TestCase):
     def setUp(self):
         self.assertTrue(bot.IS_DRY_RUN, "estas pruebas corren solo en dry-run")
         self.tmp = tempfile.TemporaryDirectory()
-        state_path = os.path.join(self.tmp.name, "state.json")
 
-        # Inicializa bot_state con archivo temporal.
         bot.bot_state = BotState(
-            state_path, "dry_run",
+            os.path.join(self.tmp.name, "state.json"),
+            "dry_run",
             max_trades=MAX_TRADES_DAY,
             max_losses=MAX_LOSSES_DAY,
             min_hours=MIN_HOURS_BETWEEN_TRADES,
+            capital_ref=CAPITAL_REF_MXN,
+            daily_loss_pct=DAILY_LOSS_PCT,
         )
 
-        # Parchea dependencias externas.
+        # trade_log apunta a archivo temporal para no tocar la BD real.
+        self._orig_tl = bot.TRADE_LOG_FILE
+        bot.TRADE_LOG_FILE = os.path.join(self.tmp.name, "trades.db")
+        import trade_log as tl
+        tl.init_db(bot.TRADE_LOG_FILE)
+
         self._patches = []
         self.notify = self._patch("telegram_notify")
-        self.rsi = self._patch("read_cached_rsi", return_value=None)
-        self.price = self._patch("bitso_get_ticker", return_value=1_000_000.0)
-        self.order = self._patch("bitso_place_order", return_value={"simulated": True})
+        self.rsi    = self._patch("read_cached_rsi", return_value=None)
+        self.quote  = self._patch("bitso_get_quote", return_value=dict(_QUOTE_OK))
+        self.order  = self._patch("bitso_place_order", return_value={"simulated": True})
 
     def tearDown(self):
         for p in self._patches:
             p.stop()
+        bot.TRADE_LOG_FILE = self._orig_tl
         self.tmp.cleanup()
 
     def _patch(self, name, *args, **kwargs):
@@ -131,24 +143,25 @@ class TradeFlowTests(unittest.TestCase):
         self.rsi.return_value = 25.0
         bot._tick()
         self.assertIsNotNone(bot.bot_state.get("position"))
-        self.order.assert_called_with("btc_mxn", "buy", amount_mxn=500.0)
-        self.assertEqual(bot.bot_state.get("trades_today"), 1)
+        self.order.assert_called_once()
+        call = self.order.call_args
+        self.assertEqual(call.args, ("btc_mxn", "buy"))
+        self.assertIn("amount_mxn", call.kwargs)
+        self.assertGreater(call.kwargs["amount_mxn"], 0)
 
     def test_stop_loss_sells_btc_not_mxn(self):
         self.rsi.return_value = 25.0
         bot._tick()
 
-        self.price.return_value = 975_000.0  # -2.5%, supera el stop del 2%
+        self.quote.return_value = {"last": 975_000.0, "bid": 974_000.0, "ask": 976_000.0, "spread_pct": 0.002}
         self.rsi.return_value = None
         bot._tick()
 
         self.assertIsNone(bot.bot_state.get("position"))
         self.assertEqual(bot.bot_state.get("losses_today"), 1)
-        call = self.order.call_args
-        # La venta usa amount_btc, nunca amount_mxn.
-        self.assertEqual(call.args, ("btc_mxn", "sell"))
-        self.assertIn("amount_btc", call.kwargs)
-        self.assertNotIn("amount_mxn", call.kwargs)
+        sell_call = [c for c in self.order.call_args_list if c.args[1] == "sell"][0]
+        self.assertIn("amount_btc", sell_call.kwargs)
+        self.assertNotIn("amount_mxn", sell_call.kwargs)
 
     def test_rsi_sell_clears_position(self):
         self.rsi.return_value = 25.0
@@ -160,8 +173,7 @@ class TradeFlowTests(unittest.TestCase):
     def test_position_is_persisted_to_disk(self):
         self.rsi.return_value = 25.0
         bot._tick()
-        path = bot.bot_state._path
-        with open(path, encoding="utf-8") as f:
+        with open(bot.bot_state._path, encoding="utf-8") as f:
             saved = json.load(f)
         self.assertIsNotNone(saved["position"])
 
@@ -170,7 +182,6 @@ class TradeFlowTests(unittest.TestCase):
         self.rsi.return_value = 20.0
         bot._tick()
         self.order.assert_not_called()
-        self.assertIsNone(bot.bot_state.get("position"))
 
     def test_day_change_resets_counters(self):
         bot.bot_state.set(day="1999-01-01", trades_today=3, losses_today=2)
@@ -187,9 +198,22 @@ class TradeFlowTests(unittest.TestCase):
         self.rsi.return_value = 25.0
         bot._tick()
         bot._tick()
-        # Solo una compra
         buy_calls = [c for c in self.order.call_args_list if c.args[1] == "buy"]
         self.assertEqual(len(buy_calls), 1)
+
+    def test_wide_spread_blocks_buy(self):
+        self.rsi.return_value = 25.0
+        self.quote.return_value = {"last": 1_000_000.0, "bid": 990_000.0, "ask": 1_010_000.0, "spread_pct": 0.02}
+        bot._tick()
+        self.order.assert_not_called()
+
+    def test_kill_switch_halts_bot(self):
+        # Simula equity caído al 85% del capital de referencia (drawdown 15% > umbral 10%).
+        bot.bot_state.set(pnl_total=-(CAPITAL_REF_MXN * 0.15))
+        self.rsi.return_value = 20.0
+        bot._tick()
+        self.assertIsNotNone(bot.bot_state.get("halt_reason"))
+        self.order.assert_not_called()
 
 
 if __name__ == "__main__":

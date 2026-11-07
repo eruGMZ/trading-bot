@@ -63,13 +63,25 @@ def bitso_get_available(currency):
     return 0.0
 
 
-def bitso_get_ticker(book="btc_mxn"):
-    response = requests.get(
-        f"{BASE_URL}/v3/ticker/?book={book}",
-        timeout=10,
-    )
+def bitso_get_quote(book="btc_mxn"):
+    """Retorna {last, bid, ask, spread_pct} desde el ticker de Bitso.
+
+    spread_pct = (ask - bid) / ask — indica la amplitud relativa del spread.
+    Un spread alto bloquea nuevas entradas.
+    """
+    response = requests.get(f"{BASE_URL}/v3/ticker/?book={book}", timeout=10)
     response.raise_for_status()
-    return float(response.json()["payload"]["last"])
+    p = response.json()["payload"]
+    last = float(p["last"])
+    bid  = float(p["bid"])
+    ask  = float(p["ask"])
+    spread_pct = (ask - bid) / ask if ask > 0 else 0.0
+    return {"last": last, "bid": bid, "ask": ask, "spread_pct": spread_pct}
+
+
+def bitso_get_ticker(book="btc_mxn"):
+    """Alias de compatibilidad. Usa bitso_get_quote() para datos completos."""
+    return bitso_get_quote(book)["last"]
 
 
 def bitso_place_order(book, side, amount_mxn=None, amount_btc=None):

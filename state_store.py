@@ -16,6 +16,7 @@ def default_state(mode, today):
         "losses_today": 0,
         "pnl_today": 0.0,
         "pnl_total": 0.0,
+        "peak_equity": None,        # equity máximo histórico (MXN); None = usar capital_ref
         "last_trade_time": None,    # ISO 8601
         "last_update_id": 0,
         "last_daily_report_date": None,
