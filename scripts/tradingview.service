@@ -1,0 +1,17 @@
+[Unit]
+Description=TradingView Desktop (CDP mode)
+# Arranca después de que la red y el display manager estén listos.
+# El script de lanzamiento espera activamente a que X11 esté disponible.
+After=network.target display-manager.service
+
+[Service]
+User=erick-pc
+ExecStart=/home/erick-pc/trading-bot/scripts/tradingview-launch.sh
+Restart=on-failure
+RestartSec=10
+MemoryMax=800M
+# DISPLAY lo gestiona el script; XAUTHORITY se detecta automáticamente.
+Environment=DISPLAY=:0
+
+[Install]
+WantedBy=graphical.target

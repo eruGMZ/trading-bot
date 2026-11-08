@@ -89,6 +89,60 @@ class PositionSizeTests(unittest.TestCase):
         self.assertGreaterEqual(size, 1.0)
 
 
+class ComputeMetricsTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.db  = os.path.join(self.tmp.name, "trades.db")
+        trade_log.init_db(self.db)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def _close(self, pnl):
+        trade_log.log_close(self.db, "close", 1_000_000, 1_000_000, 0.001,
+                            pnl, pnl / 10, "rsi_sell", "dry_run")
+
+    def test_no_trades_returns_zero_total(self):
+        m = trade_log.compute_metrics(self.db)
+        self.assertEqual(m["total"], 0)
+
+    def test_all_wins(self):
+        self._close(100); self._close(50)
+        m = trade_log.compute_metrics(self.db)
+        self.assertEqual(m["total"], 2)
+        self.assertAlmostEqual(m["win_rate"], 100.0)
+        self.assertEqual(m["profit_factor"], float("inf"))
+        self.assertAlmostEqual(m["max_drawdown_mxn"], 0.0)
+
+    def test_all_losses(self):
+        self._close(-80); self._close(-40)
+        m = trade_log.compute_metrics(self.db)
+        self.assertAlmostEqual(m["win_rate"], 0.0)
+        self.assertAlmostEqual(m["profit_factor"], 0.0)
+
+    def test_mixed_win_rate_and_expectancy(self):
+        self._close(60); self._close(-20); self._close(40)
+        m = trade_log.compute_metrics(self.db)
+        self.assertAlmostEqual(m["win_rate"], 200/3, places=1)   # 2/3
+        self.assertAlmostEqual(m["expectancy"], 80/3, places=4)  # (60-20+40)/3
+
+    def test_profit_factor(self):
+        self._close(90); self._close(-30)
+        m = trade_log.compute_metrics(self.db)
+        self.assertAlmostEqual(m["profit_factor"], 3.0)  # 90 / 30
+
+    def test_max_drawdown(self):
+        # +100, -60, +20 → cumPnL: 100, 40, 60 → DD máx = 100-40 = 60
+        self._close(100); self._close(-60); self._close(20)
+        m = trade_log.compute_metrics(self.db)
+        self.assertAlmostEqual(m["max_drawdown_mxn"], 60.0)
+
+    def test_open_rows_excluded(self):
+        trade_log.log_open(self.db, 1_000_000, 0.001, 1000.0, "rsi_buy", "dry_run")
+        m = trade_log.compute_metrics(self.db)
+        self.assertEqual(m["total"], 0)
+
+
 class TradeLogTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

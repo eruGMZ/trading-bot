@@ -20,6 +20,7 @@ def default_state(mode, today):
         "last_trade_time": None,    # ISO 8601
         "last_update_id": 0,
         "last_daily_report_date": None,
+        "last_tick_ok": None,           # ISO 8601 del último tick con precio válido
     }
 
 

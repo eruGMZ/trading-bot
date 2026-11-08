@@ -5,7 +5,8 @@ No envían mensajes ellos mismos: eso lo hace el caller.
 """
 import logging
 
-from config import BOT_MODE, CAPITAL_REF_MXN, DAILY_LOSS_PCT, IS_DRY_RUN
+import trade_log
+from config import BOT_MODE, CAPITAL_REF_MXN, DAILY_LOSS_PCT, IS_DRY_RUN, TRADE_LOG_FILE
 from exchange import bitso_get_balance
 
 log = logging.getLogger(__name__)
@@ -82,4 +83,20 @@ def handle_command(text, bot_state):
             f"Equity actual: {cur_equity:,.0f} MXN"
         )
 
-    return "Comandos: /status /balance /stop /start /pnl"
+    if cmd == "/metrics":
+        m = trade_log.compute_metrics(TRADE_LOG_FILE)
+        if m.get("total", 0) == 0:
+            return "📊 Sin operaciones cerradas todavía."
+        pf = m["profit_factor"]
+        pf_str = f"{pf:.2f}" if pf != float("inf") else "∞"
+        return (
+            f"📊 Métricas ({m['total']} trades cerrados):\n"
+            f"Win rate: {m['win_rate']:.0f}%\n"
+            f"Expectancy: {m['expectancy']:+.1f} MXN/trade\n"
+            f"Profit factor: {pf_str}\n"
+            f"Max drawdown: -{m['max_drawdown_mxn']:.0f} MXN\n"
+            f"Bruto ganado: {m['gross_profit']:+.0f} MXN\n"
+            f"Bruto perdido: {m['gross_loss']:+.0f} MXN"
+        )
+
+    return "Comandos: /status /balance /stop /start /pnl /metrics"
