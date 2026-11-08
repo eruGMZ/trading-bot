@@ -71,6 +71,27 @@ class CanTradeTests(unittest.TestCase):
         )
         self.assertTrue(ok)
 
+    def test_blocks_outside_trading_hours(self):
+        now = datetime(2026, 1, 1, 3, 0, 0)  # 03:00 — fuera de 9-22
+        ok, reason = risk.can_trade(self.snap(trading_hours="9-22"), now=now)
+        self.assertFalse(ok)
+        self.assertIn("horario", reason)
+
+    def test_allows_inside_trading_hours(self):
+        now = datetime(2026, 1, 1, 15, 0, 0)  # 15:00 — dentro de 9-22
+        ok, _ = risk.can_trade(self.snap(trading_hours="9-22"), now=now)
+        self.assertTrue(ok)
+
+    def test_no_filter_when_trading_hours_empty(self):
+        now = datetime(2026, 1, 1, 3, 0, 0)  # madrugada
+        ok, _ = risk.can_trade(self.snap(trading_hours=""), now=now)
+        self.assertTrue(ok)
+
+    def test_ignores_invalid_trading_hours_format(self):
+        now = datetime(2026, 1, 1, 3, 0, 0)
+        ok, _ = risk.can_trade(self.snap(trading_hours="malformado"), now=now)
+        self.assertTrue(ok)  # formato inválido → no filtrar
+
 
 class StopLossTests(unittest.TestCase):
     def test_triggers_at_exact_threshold(self):

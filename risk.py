@@ -35,6 +35,16 @@ def can_trade(snapshot, now=None):
     if pnl_today < limit_mxn:
         return False, f"corte de pérdida diaria ({pnl_today:+.0f} MXN, límite {limit_mxn:.0f} MXN)"
 
+    trading_hours = snapshot.get("trading_hours", "")
+    if trading_hours:
+        try:
+            start_h, end_h = (int(x) for x in trading_hours.split("-"))
+            t = now if now is not None else datetime.now()
+            if not (start_h <= t.hour < end_h):
+                return False, f"fuera de horario ({t.hour}h, ventana {start_h}-{end_h}h)"
+        except (ValueError, TypeError):
+            pass  # formato inválido → no filtrar
+
     last = snapshot.get("last_trade_time")
     if last:
         t = now if now is not None else datetime.now()

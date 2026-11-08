@@ -17,7 +17,7 @@ class BotState:
     def __init__(self, path, mode,
                  max_trades=3, max_losses=2, min_hours=1,
                  capital_ref=5000.0, daily_loss_pct=0.03,
-                 taker_fee=0.0):
+                 taker_fee=0.0, trading_hours=""):
         self._lock = threading.Lock()
         self._path = path
         today = date.today().isoformat()
@@ -29,8 +29,9 @@ class BotState:
             self._s["min_hours"]     = min_hours
             self._s["capital_ref"]   = capital_ref
             self._s["daily_loss_pct"] = daily_loss_pct
-            self._s["mode"]          = mode
-            self._taker_fee          = taker_fee
+            self._s["mode"]           = mode
+            self._s["trading_hours"]  = trading_hours
+            self._taker_fee           = taker_fee
             # peak_equity arranca en capital_ref si no hay valor guardado.
             if self._s.get("peak_equity") is None:
                 self._s["peak_equity"] = capital_ref

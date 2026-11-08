@@ -60,5 +60,9 @@ DAILY_REPORT_HOUR        = int(os.getenv("DAILY_REPORT_HOUR", "23"))
 # Comisión taker de Bitso (0.78%). Se aplica en compra y venta; round-trip ≈ 1.56%.
 BITSO_TAKER_FEE = float(os.getenv("BITSO_TAKER_FEE", "0.0078"))
 
+# Ventana horaria para abrir posiciones, formato "HH-HH" hora local (ej. "9-22").
+# Vacío = sin restricción de horario.
+TRADING_HOURS = os.getenv("TRADING_HOURS", "")
+
 # Si al arrancar hay BTC en Bitso por encima de este valor sin posición registrada, se bloquea.
 RECONCILE_DUST_MXN = 10.0
