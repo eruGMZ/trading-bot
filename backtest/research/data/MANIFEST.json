@@ -1,0 +1,37 @@
+{
+  "dataset": "btcusdt_h1_research_v1.csv",
+  "kind": "derivado",
+  "is_original_phase0_dataset": false,
+  "protocol": "QRP-001 v1.1 — decisión P-009",
+  "description": "Subconjunto por marca de tiempo del dataset completo, sin velas de LOCKBOX_OOS_001 ni del 2025-11-08.",
+  "sha256": "6b4b42003db49b7abc5f8fe74391149eb64143a204cc98bd15c5c24646639c1c",
+  "rows": 22128,
+  "columns": [
+    "open_time",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume"
+  ],
+  "timezone": "UTC",
+  "frequency": "1h",
+  "first_open_time": "2023-05-01T00:00:00Z",
+  "last_open_time": "2025-11-07T23:00:00Z",
+  "selection_rule": "open_time < 2025-11-08T00:00:00Z",
+  "source": {
+    "file": "backtest/btcusdt_h1.csv",
+    "sha256": "e88a8403c0cc30fde45fd9b492a7c60a0aa43a2d1e157b8bb3ec5663e6195598",
+    "origin": "Binance API pública /api/v3/klines, BTCUSDT 1h, descargado 2026-11-08 con backtest/fetch_klines.py",
+    "rows_dropped": 8592
+  },
+  "verification": {
+    "duplicates": 0,
+    "hourly_gaps": 0,
+    "rows_in_lockbox": 0,
+    "prices_inspected": false
+  },
+  "generator": "backtest/research/tools/make_research_dataset.py",
+  "generator_sha256": "6235addd976f870323e6f74181e716d8f665f745b2c2d5a0f09f0bf5b23cae0b",
+  "generated_at": "2026-11-08T22:40:29Z"
+}

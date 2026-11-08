@@ -1,0 +1,25 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "autoAllowBashIfSandboxed": false,
+    "filesystem": {
+      "denyRead": [
+        "/home/erick-pc/trading-bot/backtest/btcusdt_h1.csv",
+        "/home/erick-pc/trading-bot/.git"
+      ]
+    },
+    "network": {
+      "allowedDomains": []
+    }
+  },
+  "permissions": {
+    "deny": [
+      "Read(//home/erick-pc/trading-bot/backtest/btcusdt_h1.csv)",
+      "Read(//home/erick-pc/trading-bot/.git/**)",
+      "WebFetch",
+      "WebSearch"
+    ]
+  }
+}
