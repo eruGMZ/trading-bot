@@ -216,5 +216,61 @@ class TradeFlowTests(unittest.TestCase):
         self.order.assert_not_called()
 
 
+class ReconcileDailyTests(unittest.TestCase):
+    """_reconcile_daily(): en dry_run no hace nada; en operational compara saldos."""
+
+    def setUp(self):
+        self.assertTrue(bot.IS_DRY_RUN)
+        self.tmp = tempfile.TemporaryDirectory()
+        bot.bot_state = BotState(
+            os.path.join(self.tmp.name, "state.json"),
+            "dry_run",
+            max_trades=MAX_TRADES_DAY,
+            max_losses=MAX_LOSSES_DAY,
+            min_hours=MIN_HOURS_BETWEEN_TRADES,
+            capital_ref=CAPITAL_REF_MXN,
+            daily_loss_pct=DAILY_LOSS_PCT,
+        )
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_dry_run_does_nothing(self):
+        # En dry_run _reconcile_daily debe retornar sin llamar a Bitso.
+        with mock.patch.object(bot, "bitso_get_available") as avail, \
+             mock.patch.object(bot, "bitso_get_quote") as quote:
+            bot._reconcile_daily()
+            avail.assert_not_called()
+            quote.assert_not_called()
+
+    def test_operational_ok_when_delta_below_dust(self):
+        with mock.patch.object(bot, "IS_DRY_RUN", False), \
+             mock.patch.object(bot, "bitso_get_available", return_value=0.0), \
+             mock.patch.object(bot, "bitso_get_quote", return_value={"last": 1_000_000.0}), \
+             mock.patch.object(bot, "telegram_notify") as notify:
+            bot._reconcile_daily()
+            notify.assert_not_called()
+            self.assertIsNone(bot.bot_state.get("halt_reason"))
+
+    def test_operational_alerts_on_discrepancy(self):
+        # Delta de 0.001 BTC a 1,000,000 MXN = 1,000 MXN > RECONCILE_DUST_MXN (10)
+        with mock.patch.object(bot, "IS_DRY_RUN", False), \
+             mock.patch.object(bot, "bitso_get_available", return_value=0.001), \
+             mock.patch.object(bot, "bitso_get_quote", return_value={"last": 1_000_000.0}), \
+             mock.patch.object(bot, "telegram_notify") as notify:
+            bot._reconcile_daily()
+            notify.assert_called_once()
+            self.assertIn("discrepancia", notify.call_args[0][0])
+
+    def test_operational_halts_on_critical_discrepancy(self):
+        # Delta de 0.1 BTC a 1,000,000 = 100,000 MXN >> RECONCILE_DUST_MXN × 10
+        with mock.patch.object(bot, "IS_DRY_RUN", False), \
+             mock.patch.object(bot, "bitso_get_available", return_value=0.1), \
+             mock.patch.object(bot, "bitso_get_quote", return_value={"last": 1_000_000.0}), \
+             mock.patch.object(bot, "telegram_notify"):
+            bot._reconcile_daily()
+            self.assertIsNotNone(bot.bot_state.get("halt_reason"))
+
+
 if __name__ == "__main__":
     unittest.main()

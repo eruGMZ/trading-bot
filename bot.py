@@ -214,6 +214,45 @@ def _send_daily_report(today):
     )
 
 
+# ── Reconciliación diaria ─────────────────────────────────────────────────────
+
+def _reconcile_daily():
+    """Compara el saldo real de Bitso contra el estado interno.
+
+    Solo corre en modo operacional. Alerta si la discrepancia supera
+    RECONCILE_DUST_MXN; bloquea el bot si supera 10× ese umbral.
+    """
+    if IS_DRY_RUN:
+        return
+
+    pos = bot_state.get("position")
+    expected_btc = pos["amount_btc"] if pos else 0.0
+
+    try:
+        actual_btc = bitso_get_available("btc")
+        price = bitso_get_quote(BOOK)["last"]
+    except Exception as e:
+        log.warning("Reconciliación diaria: no se pudo consultar Bitso: %s", e)
+        return
+
+    delta_btc = abs(actual_btc - expected_btc)
+    delta_mxn = delta_btc * price
+
+    if delta_mxn < RECONCILE_DUST_MXN:
+        log.info("Reconciliación diaria OK — delta %.8f BTC (%.1f MXN)", delta_btc, delta_mxn)
+        return
+
+    _notify(
+        f"⚠️ Reconciliación diaria: discrepancia {delta_btc:.8f} BTC ({delta_mxn:.0f} MXN)\n"
+        f"Esperado: {expected_btc:.8f} BTC | Real en Bitso: {actual_btc:.8f} BTC"
+    )
+
+    if delta_mxn >= RECONCILE_DUST_MXN * 10:
+        bot_state.halt(
+            f"discrepancia crítica en reconciliación diaria: {delta_mxn:.0f} MXN"
+        )
+
+
 # ── Tick del loop principal ───────────────────────────────────────────────────
 
 def _tick():
@@ -227,6 +266,7 @@ def _tick():
 
     if datetime.now().hour >= DAILY_REPORT_HOUR and snap.get("last_daily_report_date") != today:
         _send_daily_report(today)
+        _reconcile_daily()
 
     quote = bitso_get_quote(BOOK)
     price = quote["last"]
