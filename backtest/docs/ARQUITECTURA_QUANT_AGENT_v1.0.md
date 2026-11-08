@@ -2,7 +2,7 @@
 
 **Identificador:** QRA-001
 **Versión:** 1.0
-**Estado:** Propuesto — pendiente de aprobación junto con QRP-001 v1.1
+**Estado:** **Aprobado conceptualmente — pendiente de habilitación operativa** (2026-11-08). Condiciones: completar A-2, A-3 y A-4 antes del primer experimento nuevo.
 **Protocolo de referencia:** `PROTOCOLO_INVESTIGACION_ESTRATEGIAS_v1.1.md`
 **Última actualización:** 2026-11-08
 
@@ -85,7 +85,7 @@ Ningún agente ejecuta la evaluación confirmatoria ni ve sus datos antes de que
 4. El custodio ejecuta el script fuera de cualquier sesión de agente, una sola vez, y registra el resultado en `REGISTRO_EXPERIMENTOS.md`.
 5. Solo entonces el resultado se comparte con los agentes.
 
-Por decisión P-012, el resultado se reporta como **evaluación histórica restringida**, no como confirmación plenamente independiente.
+Por decisión D-009 (P-012), el resultado se reporta como **evaluación histórica restringida**, no como confirmación plenamente independiente. LOCKBOX_OOS_001 no se certifica como plenamente ciego; la validación prospectiva (Etapa E2) es la evidencia confirmatoria principal. Ningún agente puede autorizar el uso del lockbox: la autorización es exclusivamente humana.
 
 ## 7. Memoria y continuidad entre sesiones
 
@@ -116,6 +116,6 @@ Separar investigador y auditor en sesiones distintas evita que el auditor herede
 | ID | Pendiente | Responsable |
 |---|---|---|
 | A-1 | ~~Instalar `socat` y verificar la capa 3~~ | **Cerrado** 2026-11-08 |
-| A-2 | Perfil de permisos del Audit Agent (solo lectura más un directorio de auditorías) | Agente, tras aprobación |
-| A-3 | Cargador de datos fail-closed (capa 4) | Agente, con el primer experimento |
-| A-4 | Script confirmatorio del lockbox (formato, entradas y salidas) | Agente, cuando exista un candidato |
+| A-2 | Perfil de permisos del Audit Agent (solo lectura más un directorio de auditorías) | Agente — obligatorio antes del primer experimento nuevo |
+| A-3 | Cargador de datos fail-closed (capa 4) — **obligatorio antes del primer experimento nuevo, sin excepciones** | Agente — bloquea inicio de Etapa C |
+| A-4 | Script confirmatorio del lockbox: sin red, dataset de solo lectura, acceso limitado al sistema de archivos, verificación de hashes antes de ejecutar — **obligatorio antes de cualquier ejecución del lockbox**, aunque todavía no exista un candidato | Agente — bloquea Etapa E1 (no bloquea investigación sobre Train) |

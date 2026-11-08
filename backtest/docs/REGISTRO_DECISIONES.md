@@ -30,6 +30,7 @@ Las decisiones aprobadas delimitan el universo de investigación. No autorizan a
 | D-017 | Capital simulado y riesgo por operación (P-001, P-002) | Capital inicial simulado: **$3,000 MXN** (sujeto a que coincida con el capital real asignado). Riesgo: **0.5% del equity actualizado** por operación. | 2026-11-08 |
 | D-018 | Kill switch de drawdown (P-003) | **10% DD sobre el equity inicial de cada fase.** Detiene nuevas operaciones al alcanzar el umbral. Sin reanudación automática. Requiere decisión humana para reiniciar. | 2026-11-08 |
 | D-019 | Duración de E2 y Paper Trading (P-007) | **E2 (prospectiva):** mínimo 3 meses **y** mínimo de operaciones cerradas (definido por preregistro antes de iniciar). **Paper Trading (F):** mínimo 2 meses **y** mínimo de operaciones (ídem). La duración sola no es suficiente; ambas condiciones deben cumplirse. | 2026-11-08 |
+| D-020 | QRA-001 v1.0 aprobación condicionada (B-1) | **Aprobado conceptualmente.** Capas 1–3 no se relajan ni modifican para facilitar experimentos. Ningún agente autoriza uso del lockbox, aprueba producción ni dispone de capital. Habilitación operativa requiere: **A-2 y A-3 antes del primer experimento nuevo** (sin excepciones — bloquean Etapa C); **A-4 antes de cualquier ejecución del lockbox**, aunque no exista candidato todavía (bloquea E1, no bloquea Train). A-4: script confirmatorio con sin red, dataset read-only, fs limitado, verificación de hashes. | 2026-11-08 |
 
 ## 2. Pendientes que bloquean la aprobación integral de QRP-001
 
@@ -37,7 +38,7 @@ Señalados en la resolución de revisión como prioritarios. Mientras sigan abie
 
 | ID | Asunto | Estado |
 |---|---|---|
-| B-1 | Arquitectura del Quant Agent | Redactada: `ARQUITECTURA_QUANT_AGENT_v1.0.md`. Pendiente de revisión. |
+| B-1 | Arquitectura del Quant Agent | **Aprobado conceptualmente** 2026-11-08. Pendiente de habilitación operativa (A-2, A-3 antes del primer experimento; A-4 cuando exista candidato). Ver D-020. |
 | B-2 | Criterios de aprobación | **Cerrado** 2026-11-08 — D-015, `CRITERIOS_APROBACION.md` |
 | B-3 | Control de experimentación | **Cerrado** 2026-11-08 — D-016, `REGISTRO_EXPERIMENTOS.md` |
 | B-4 | Gestión del riesgo simulado | **Cerrado** 2026-11-08 — D-017, D-018, D-019 |

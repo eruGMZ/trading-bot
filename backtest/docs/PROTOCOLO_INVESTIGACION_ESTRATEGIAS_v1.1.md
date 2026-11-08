@@ -2,7 +2,7 @@
 
 **Identificador:** QRP-001
 **Versión:** 1.1
-**Estado:** Pendiente de aprobación integral. Las decisiones estratégicas de §3 están aprobadas; el protocolo en su conjunto no. No se inician experimentos hasta la aprobación integral.
+**Estado:** **APROBADO INTEGRALMENTE** (2026-11-08). Investigación habilitada sobre Train una vez completados A-2 y A-3 (`ARQUITECTURA_QUANT_AGENT_v1.0.md` §10). Lockbox bloqueado hasta completar A-4 y obtener autorización humana.
 **Sustituye a:** v1.0 (`PROTOCOLO_INVESTIGACION_ESTRATEGIAS_v1.0.md`, conservada como histórico)
 **Tipo:** Documento rector de investigación cuantitativa
 **Responsable:** Revisión humana
