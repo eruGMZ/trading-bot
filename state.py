@@ -89,9 +89,10 @@ class BotState:
         now = datetime.now().isoformat(timespec="seconds")
         with self._lock:
             self._s["position"] = {
-                "entry_price": price,
-                "amount_btc":  amount_mxn / price,
-                "entry_time":  now,
+                "entry_price":     price,
+                "amount_btc":      amount_mxn / price,
+                "entry_time":      now,
+                "high_since_entry": price,  # base para el trailing stop
             }
             self._s["trades_today"]    += 1
             self._s["last_trade_time"]  = now
@@ -115,6 +116,14 @@ class BotState:
             self._s["position"] = None
             self._persist()
         return pnl_mxn, pnl_pct
+
+    def update_position_high(self, price):
+        """Actualiza el máximo precio visto desde la apertura (trailing stop)."""
+        with self._lock:
+            pos = self._s.get("position")
+            if pos and price > pos.get("high_since_entry", price):
+                pos["high_since_entry"] = price
+                self._persist()
 
     def update_peak_equity(self, current_equity):
         """Actualiza el equity máximo si el actual es mayor."""

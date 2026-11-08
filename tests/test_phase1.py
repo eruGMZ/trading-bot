@@ -8,6 +8,7 @@ import os
 import sys
 import tempfile
 import unittest
+from datetime import datetime, timedelta
 from unittest import mock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -214,6 +215,46 @@ class TradeFlowTests(unittest.TestCase):
         bot._tick()
         self.assertIsNotNone(bot.bot_state.get("halt_reason"))
         self.order.assert_not_called()
+
+    def test_trailing_stop_uses_high_not_entry(self):
+        # Abre posición a 1,000,000.
+        self.rsi.return_value = 25.0
+        bot._tick()
+        # Precio sube a 1,050,000 — bot actualiza high_since_entry.
+        self.quote.return_value = {"last": 1_050_000.0, "bid": 1_049_000.0, "ask": 1_051_000.0, "spread_pct": 0.002}
+        self.rsi.return_value = None
+        bot._tick()
+        pos = bot.bot_state.get("position")
+        self.assertAlmostEqual(pos["high_since_entry"], 1_050_000.0)
+
+    def test_trailing_stop_triggers_from_high(self):
+        # Abre posición a 1,000,000, precio sube a 1,050,000, luego cae 2.5% desde high.
+        self.rsi.return_value = 25.0
+        bot._tick()
+        self.quote.return_value = {"last": 1_050_000.0, "bid": 1_049_000.0, "ask": 1_051_000.0, "spread_pct": 0.002}
+        self.rsi.return_value = None
+        bot._tick()
+        # Cae a 1,026,000 ≈ -2.3% desde high 1,050,000 → trailing stop (límite 2%)
+        self.quote.return_value = {"last": 1_026_000.0, "bid": 1_025_000.0, "ask": 1_027_000.0, "spread_pct": 0.002}
+        bot._tick()
+        self.assertIsNone(bot.bot_state.get("position"))
+
+    def test_connection_check_notifies_after_timeout(self):
+        old_ts = (datetime.now() - timedelta(minutes=15)).isoformat(timespec="seconds")
+        bot.bot_state.set(last_tick_ok=old_ts)
+        bot._last_connection_alert = None
+        with mock.patch.object(bot, "telegram_notify") as notify:
+            bot._check_connection()
+            notify.assert_called_once()
+            self.assertIn("Sin datos", notify.call_args[0][0])
+
+    def test_connection_check_no_alert_before_timeout(self):
+        recent_ts = (datetime.now() - timedelta(minutes=2)).isoformat(timespec="seconds")
+        bot.bot_state.set(last_tick_ok=recent_ts)
+        bot._last_connection_alert = None
+        with mock.patch.object(bot, "telegram_notify") as notify:
+            bot._check_connection()
+            notify.assert_not_called()
 
 
 class ReconcileDailyTests(unittest.TestCase):

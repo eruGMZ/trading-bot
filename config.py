@@ -64,5 +64,8 @@ BITSO_TAKER_FEE = float(os.getenv("BITSO_TAKER_FEE", "0.0078"))
 # Vacío = sin restricción de horario.
 TRADING_HOURS = os.getenv("TRADING_HOURS", "")
 
+# Minutos sin precio de Bitso antes de enviar alerta de conexión.
+CONNECTION_TIMEOUT_MIN = int(os.getenv("CONNECTION_TIMEOUT_MIN", "10"))
+
 # Si al arrancar hay BTC en Bitso por encima de este valor sin posición registrada, se bloquea.
 RECONCILE_DUST_MXN = 10.0

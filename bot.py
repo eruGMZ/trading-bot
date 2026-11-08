@@ -24,6 +24,7 @@ from config import (
     BITSO_API_SECRET,
     BITSO_TAKER_FEE,
     BOT_MODE,
+    CONNECTION_TIMEOUT_MIN,
     TRADING_HOURS,
     CAPITAL_REF_MXN,
     DAILY_REPORT_HOUR,
@@ -69,6 +70,7 @@ from telegram_client import (
 log = logging.getLogger(__name__)
 
 BOOK = "btc_mxn"
+_last_connection_alert: datetime = None  # módulo-nivel; evita spam de alertas
 # Bitso puede cobrar comisión en BTC: lo recibido puede ser ~0.8% menor que lo estimado.
 RECONCILE_TOLERANCE = 0.98
 
@@ -270,25 +272,39 @@ def _tick():
 
     quote = bitso_get_quote(BOOK)
     price = quote["last"]
+    bot_state.set(last_tick_ok=datetime.now().isoformat(timespec="seconds"))
     rsi   = read_cached_rsi()
     pos   = bot_state.get("position")
+
+    # ── Actualiza el máximo precio de la posición (trailing stop) ──────────
+    if pos:
+        bot_state.update_position_high(price)
+        pos = bot_state.get("position")  # re-lee con high actualizado
 
     # ── Kill switch (prioridad máxima) ─────────────────────────────────────
     if _check_kill_switch(price):
         return
 
-    # ── Stop-loss ──────────────────────────────────────────────────────────
-    if pos and risk.needs_stop_loss(pos["entry_price"], price, STOP_LOSS_PCT):
-        result = _execute_sell(price, "stop_loss")
-        if result:
-            sold, pnl_mxn, pnl_pct = result
-            trade_log.log_close(
-                TRADE_LOG_FILE, "stop_loss",
-                pos["entry_price"], price, sold, pnl_mxn, pnl_pct,
-                "stop_loss", BOT_MODE,
-            )
-            _notify(f"{MODE_TAG}⚠️ STOP-LOSS activado @ {price:,.0f} — Pérdida: {pnl_mxn:.0f} MXN")
-        return
+    # ── Trailing stop / Stop-loss ──────────────────────────────────────────
+    if pos:
+        high = pos.get("high_since_entry", pos["entry_price"])
+        if risk.needs_stop_loss(high, price, STOP_LOSS_PCT):
+            is_trailing = high > pos["entry_price"]
+            event  = "trailing_stop" if is_trailing else "stop_loss"
+            result = _execute_sell(price, event)
+            if result:
+                sold, pnl_mxn, pnl_pct = result
+                trade_log.log_close(
+                    TRADE_LOG_FILE, event,
+                    pos["entry_price"], price, sold, pnl_mxn, pnl_pct,
+                    event, BOT_MODE,
+                )
+                label = "TRAILING STOP" if is_trailing else "STOP-LOSS"
+                _notify(
+                    f"{MODE_TAG}⚠️ {label} @ {price:,.0f} "
+                    f"(high {high:,.0f}) — PnL {pnl_mxn:.0f} MXN"
+                )
+            return
 
     # ── Venta por RSI ──────────────────────────────────────────────────────
     if pos and risk.signal_sell(rsi, RSI_SELL):
@@ -336,6 +352,40 @@ def _tick():
         )
 
 
+# ── Kill switch: pérdida de conexión ─────────────────────────────────────────
+
+def _check_connection():
+    """Alerta si no hay precio de Bitso por más de CONNECTION_TIMEOUT_MIN minutos.
+
+    Envía una sola alerta por ventana de tiempo para evitar spam.
+    """
+    global _last_connection_alert
+    last_ok = bot_state.get("last_tick_ok")
+    if not last_ok:
+        return  # bot recién arrancado, aún no tuvo un tick exitoso
+
+    age_min = (datetime.now() - datetime.fromisoformat(last_ok)).total_seconds() / 60
+    if age_min < CONNECTION_TIMEOUT_MIN:
+        _last_connection_alert = None  # conexión OK: resetea el guard
+        return
+
+    # Solo alertar una vez por ventana de CONNECTION_TIMEOUT_MIN
+    if _last_connection_alert:
+        elapsed = (datetime.now() - _last_connection_alert).total_seconds() / 60
+        if elapsed < CONNECTION_TIMEOUT_MIN:
+            return
+
+    _last_connection_alert = datetime.now()
+    pos = bot_state.get("position")
+    pos_tag = " — ⚠️ HAY POSICIÓN ABIERTA" if pos else ""
+    msg = f"⚠️ Sin datos de mercado {age_min:.0f} min{pos_tag}. Verificar conexión."
+    log.warning(msg)
+    try:
+        telegram_notify(msg)
+    except Exception:
+        pass  # si Telegram también falla, solo queda el log
+
+
 # ── Loops ─────────────────────────────────────────────────────────────────────
 
 def main_loop():
@@ -345,6 +395,7 @@ def main_loop():
             _tick()
         except Exception as e:
             log.error("Error en main_loop: %s", e)
+        _check_connection()
         time.sleep(LOOP_SECONDS)
 
 

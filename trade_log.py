@@ -7,7 +7,7 @@ para consultar PnL histórico, R:R y auditar operaciones.
 Esquema:
   id          — autoincremental
   ts          — ISO 8601 (hora local)
-  event       — 'open' | 'close' | 'stop_loss' | 'kill_switch'
+  event       — 'open' | 'close' | 'stop_loss' | 'trailing_stop' | 'kill_switch'
   book        — par de trading (p. ej. 'btc_mxn')
   price       — precio en MXN al momento del evento
   amount_btc  — cantidad de BTC involucrada
@@ -86,7 +86,7 @@ def compute_metrics(db_path):
         rows = [
             r[0] for r in conn.execute(
                 "SELECT pnl_mxn FROM trades "
-                "WHERE event IN ('close','stop_loss','kill_switch') "
+                "WHERE event IN ('close','stop_loss','trailing_stop','kill_switch') "
                 "AND pnl_mxn IS NOT NULL ORDER BY id"
             )
         ]
