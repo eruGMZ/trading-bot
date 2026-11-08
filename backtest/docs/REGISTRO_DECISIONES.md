@@ -24,6 +24,12 @@ Las decisiones aprobadas delimitan el universo de investigación. No autorizan a
 | D-011 | P-010: ampliar histórico | **No autorizado** por ahora. Las limitaciones de muestra para 1D se declaran en cada experimento y no se compensan relajando criterios. | 2026-11-08 |
 | D-012 | Costos no observables (antes P-011) | Comisión documentada con fuente y fecha; spread y slippage como **supuestos explícitos** con escenarios base y adverso; limitaciones de liquidez declaradas. Ninguna estimación se presenta como observación histórica. El Paper Trading servirá para calibrarlos. | 2026-11-08 |
 | D-013 | CSV original de Fase 0 perdido | Registrado como incidencia permanente de trazabilidad (`INCIDENCIAS.md`, INC-001). No se reconstruye ni se sustituye. | 2026-11-08 |
+| D-014 | Restricción fiscal de frecuencia | `MAX_TRADES_MONTH = 8` es **restricción dura no optimizable**. Régimen SAT 605 (asalariado). >10 ops/mes sostenido activa actividad empresarial. Escalado solo por capital (500→10,000 MXN), nunca por frecuencia. Ver `CRITERIOS_APROBACION.md` §1. | 2026-11-08 |
+| D-015 | Criterios de aprobación (B-2) | **Aprobados.** Train: ≥50 ops, Sharpe >1.0, DD <10%, PF >1.5 (escenario adverso). LOCKBOX/Prospectiva: PF >1.2, DD <10%, expectancy >0, IC no cruza 0. Ver `CRITERIOS_APROBACION.md`. | 2026-11-08 |
+| D-016 | Presupuesto global de experimentos (B-3) | **Aprobado.** Máx. 5 familias, 4 configs/familia, 20 configs total. Grid search libre prohibido. Toda variante preregistrada antes de ejecutarse. FASE-0 consume 1 familia y 4 configs. Escenarios de costo no cuentan como configs. Ver `REGISTRO_EXPERIMENTOS.md`. | 2026-11-08 |
+| D-017 | Capital simulado y riesgo por operación (P-001, P-002) | Capital inicial simulado: **$3,000 MXN** (sujeto a que coincida con el capital real asignado). Riesgo: **0.5% del equity actualizado** por operación. | 2026-11-08 |
+| D-018 | Kill switch de drawdown (P-003) | **10% DD sobre el equity inicial de cada fase.** Detiene nuevas operaciones al alcanzar el umbral. Sin reanudación automática. Requiere decisión humana para reiniciar. | 2026-11-08 |
+| D-019 | Duración de E2 y Paper Trading (P-007) | **E2 (prospectiva):** mínimo 3 meses **y** mínimo de operaciones cerradas (definido por preregistro antes de iniciar). **Paper Trading (F):** mínimo 2 meses **y** mínimo de operaciones (ídem). La duración sola no es suficiente; ambas condiciones deben cumplirse. | 2026-11-08 |
 
 ## 2. Pendientes que bloquean la aprobación integral de QRP-001
 
@@ -32,9 +38,9 @@ Señalados en la resolución de revisión como prioritarios. Mientras sigan abie
 | ID | Asunto | Estado |
 |---|---|---|
 | B-1 | Arquitectura del Quant Agent | Redactada: `ARQUITECTURA_QUANT_AGENT_v1.0.md`. Pendiente de revisión. |
-| B-2 | Criterios de aprobación | Borrador en `CRITERIOS_APROBACION.md`; ningún umbral aprobado (P-008) |
-| B-3 | Control de experimentación | Falta el presupuesto global (P-006) y la regla de contabilización de variantes, configuraciones y pruebas repetidas |
-| B-4 | Gestión del riesgo simulado | Falta capital de simulación (P-001), riesgo por operación (P-002), DD admisible (P-003) y duración de Paper Trading (P-007) |
+| B-2 | Criterios de aprobación | **Cerrado** 2026-11-08 — D-015, `CRITERIOS_APROBACION.md` |
+| B-3 | Control de experimentación | **Cerrado** 2026-11-08 — D-016, `REGISTRO_EXPERIMENTOS.md` |
+| B-4 | Gestión del riesgo simulado | **Cerrado** 2026-11-08 — D-017, D-018, D-019 |
 | B-5 | Capa 3 de aislamiento (sandbox) | **Cerrado** 2026-11-08. Las 4 vías verificadas. Ver `EVIDENCIA_AISLAMIENTO_LOCKBOX.md` §6. |
 
 ## 3. Otros pendientes
