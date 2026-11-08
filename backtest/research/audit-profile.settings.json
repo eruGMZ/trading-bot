@@ -1,0 +1,39 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "allowUnsandboxedCommands": false,
+    "autoAllowBashIfSandboxed": false,
+    "filesystem": {
+      "denyRead": [
+        "/home/erick-pc/trading-bot/backtest/btcusdt_h1.csv",
+        "/home/erick-pc/trading-bot/.git"
+      ]
+    },
+    "network": {
+      "allowedDomains": []
+    }
+  },
+  "permissions": {
+    "deny": [
+      "Read(/home/erick-pc/trading-bot/backtest/btcusdt_h1.csv)",
+      "Read(/home/erick-pc/trading-bot/.git/**)",
+      "Edit(/home/erick-pc/trading-bot/**)",
+      "Write(/home/erick-pc/trading-bot/**)",
+      "Bash(git commit*)",
+      "Bash(git push*)",
+      "Bash(git checkout*)",
+      "Bash(git reset*)",
+      "Bash(git rebase*)",
+      "Bash(rm *)",
+      "Bash(mv *)",
+      "Bash(cp *)",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "allow": [
+      "Edit(/home/erick-pc/trading-bot/backtest/experiments/**/audit*.md)",
+      "Write(/home/erick-pc/trading-bot/backtest/experiments/**/audit*.md)"
+    ]
+  }
+}

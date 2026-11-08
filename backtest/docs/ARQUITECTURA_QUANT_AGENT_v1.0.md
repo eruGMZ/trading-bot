@@ -2,7 +2,7 @@
 
 **Identificador:** QRA-001
 **Versión:** 1.0
-**Estado:** **Aprobado conceptualmente — pendiente de habilitación operativa** (2026-11-08). Condiciones: completar A-2, A-3 y A-4 antes del primer experimento nuevo.
+**Estado:** **Operativamente habilitado para Train** (2026-11-08). A-2 y A-3 completados. Lockbox bloqueado hasta completar A-4 y obtener autorización humana.
 **Protocolo de referencia:** `PROTOCOLO_INVESTIGACION_ESTRATEGIAS_v1.1.md`
 **Última actualización:** 2026-11-08
 
@@ -67,7 +67,7 @@ backtest/
 | 1 | Reglas `permissions.deny` en `.claude/settings.json` | Read del dataset completo y de `.git/objects`; edición de controles, datos derivados y herramientas de custodia | Comandos Bash arbitrarios | **Activa y verificada** |
 | 2 | Hook `PreToolUse` `lockbox_guard.py` (fail-closed) | Read, Grep, Glob y Bash que nombran el dataset completo, rutas ofuscadas y enlaces simbólicos (Read/Grep), `backtest.py`, `--oos`, descargas, herramienta de custodia, lectura del historial de git | Programas que construyen la ruta en tiempo de ejecución | **Activa y verificada** |
 | 3 | Sandbox del SO (bubblewrap) vía `run_research_agent.sh` | Todo acceso de los comandos Bash al dataset completo y a `.git`, sin importar cómo se escriba la ruta; sin red | Herramientas internas de Claude Code, cubiertas por las capas 1–2 | **Activa y verificada** (2026-11-08) |
-| 4 | Cargador de datos de investigación fail-closed | Que el código de los experimentos solo acepte el derivado con su hash y rechace cualquier vela ≥ 2025-11-08 | — | Pendiente: se implementa con el primer experimento |
+| 4 | Cargador de datos de investigación fail-closed | Que el código de los experimentos solo acepte el derivado con su hash y rechace cualquier vela ≥ 2025-11-08 | — | **Activa y verificada** (2026-11-08) — `backtest/research/data_loader.py` |
 
 Evidencia de las pruebas: `EVIDENCIA_AISLAMIENTO_LOCKBOX.md`.
 
@@ -116,6 +116,6 @@ Separar investigador y auditor en sesiones distintas evita que el auditor herede
 | ID | Pendiente | Responsable |
 |---|---|---|
 | A-1 | ~~Instalar `socat` y verificar la capa 3~~ | **Cerrado** 2026-11-08 |
-| A-2 | Perfil de permisos del Audit Agent (solo lectura más un directorio de auditorías) | Agente — obligatorio antes del primer experimento nuevo |
-| A-3 | Cargador de datos fail-closed (capa 4) — **obligatorio antes del primer experimento nuevo, sin excepciones** | Agente — bloquea inicio de Etapa C |
+| A-2 | Perfil de permisos del Audit Agent | **Cerrado** 2026-11-08 — `audit-profile.settings.json`, `run_audit_agent.sh` |
+| A-3 | Cargador de datos fail-closed (capa 4) | **Cerrado** 2026-11-08 — `data_loader.py`; 3/3 tests pasados |
 | A-4 | Script confirmatorio del lockbox: sin red, dataset de solo lectura, acceso limitado al sistema de archivos, verificación de hashes antes de ejecutar — **obligatorio antes de cualquier ejecución del lockbox**, aunque todavía no exista un candidato | Agente — bloquea Etapa E1 (no bloquea investigación sobre Train) |
