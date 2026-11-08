@@ -1,0 +1,4 @@
+# Versiones con las que se generó REPORTE_FASE0.md (Python 3.12.3)
+pandas==2.1.4
+numpy==1.26.4
+requests>=2.31
