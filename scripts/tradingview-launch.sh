@@ -10,7 +10,8 @@ export DISPLAY="$DISPLAY_ID"
 
 # Intentar obtener XAUTHORITY desde la sesión del usuario si no está definido
 if [ -z "$XAUTHORITY" ]; then
-    XAUTHORITY_CANDIDATE=$(find /home/erick-pc -maxdepth 2 -name ".Xauthority" 2>/dev/null | head -1)
+    TARGET_HOME="${HOME:-/home/${USER}}"
+    XAUTHORITY_CANDIDATE=$(find "$TARGET_HOME" -maxdepth 2 -name ".Xauthority" 2>/dev/null | head -1)
     if [ -n "$XAUTHORITY_CANDIDATE" ]; then
         export XAUTHORITY="$XAUTHORITY_CANDIDATE"
     fi

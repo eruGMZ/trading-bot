@@ -32,9 +32,9 @@
 - [x] Implement `adapters/telegram/` (`schemas.py`, `client.py`, `dispatcher.py`).
 
 ## Phase 4: Application Orchestration & Lifecycle
-- [ ] Extract `reconcile.py` and `process_tick.py` use cases with Dependency Injection.
-- [ ] Implement `runner.py` with `SIGTERM`/`SIGINT` handlers and `threading.Event` graceful shutdown.
-- [ ] Sanitize `scripts/` (`systemd` unit and shell scripts) to remove hardcoded paths.
+- [x] Extract `reconcile.py` and `process_tick.py` use cases with Dependency Injection.
+- [x] Implement `runner.py` with `SIGTERM`/`SIGINT` handlers and `threading.Event` graceful shutdown.
+- [x] Sanitize `scripts/` (`systemd` unit and shell scripts) to remove hardcoded paths.
 
 ## Phase 5: Verification & Test Suite Overhaul
 - [ ] Migrate and split `test_phase1.py` / `test_phase3.py` into `tests/unit/` and `tests/integration/`.

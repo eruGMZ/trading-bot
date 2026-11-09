@@ -63,7 +63,12 @@ echo "======================================"
 
 # 4. Verificar RSI cache
 sleep 3
-RSI_FILE="$HOME/trading-bot/rsi_cache.json"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+RSI_FILE="${RSI_CACHE_FILE:-"$PROJECT_ROOT/rsi_cache.json"}"
+if [ ! -f "$RSI_FILE" ] && [ -f "$HOME/trading-bot/rsi_cache.json" ]; then
+    RSI_FILE="$HOME/trading-bot/rsi_cache.json"
+fi
 if [ -f "$RSI_FILE" ]; then
     RSI=$(python3 -c "
 import json,time

@@ -5,8 +5,9 @@ Description=TradingView Desktop (CDP mode)
 After=network.target display-manager.service
 
 [Service]
-User=erick-pc
-ExecStart=/home/erick-pc/trading-bot/scripts/tradingview-launch.sh
+# User running TradingView (can be overridden or deployed as user unit in ~/.config/systemd/user/)
+User=%u
+ExecStart=%h/trading-bot/scripts/tradingview-launch.sh
 Restart=on-failure
 RestartSec=10
 MemoryMax=800M
