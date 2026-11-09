@@ -36,12 +36,6 @@ rsi-updater = "trading_bot.adapters.indicators.cached_rsi:main"
 [tool.ruff]
 target-version = "py311"
 line-length = 100
-extend-exclude = [
-    "tests/test_phase1.py",
-    "tests/test_phase3.py",
-    "tests/test_risk.py",
-    "tests/test_signals.py",
-]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "TCH"]
