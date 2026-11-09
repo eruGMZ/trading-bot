@@ -14,11 +14,11 @@ from pydantic import SecretStr
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
-from trading_bot.adapters.bitso.schemas import (
-    BitsoApiResponse,
-    BitsoBalancePayload,
-    BitsoOrderPayload,
-    BitsoTickerPayload,
+from trading_bot.adapters.bitso.bitso_dto import (
+    BitsoApiResponseDTO,
+    BitsoBalanceDTO,
+    BitsoOrderDTO,
+    BitsoTickerDTO,
 )
 from trading_bot.core.exceptions import ExchangeError
 from trading_bot.core.money import format_btc, format_mxn
@@ -126,7 +126,7 @@ class LiveBitsoAdapter(ExchangePort):
         """Fetch and parse current ticker into domain Quote."""
         path = f"/v3/ticker/?book={book}"
         raw_data = self._request("GET", path, auth_required=False)
-        envelope = BitsoApiResponse[BitsoTickerPayload].model_validate(raw_data)
+        envelope = BitsoApiResponseDTO[BitsoTickerDTO].model_validate(raw_data)
 
         if envelope.payload is None:
             raise ExchangeError(f"Ticker response missing payload: {raw_data}")
@@ -145,7 +145,7 @@ class LiveBitsoAdapter(ExchangePort):
         """Fetch available balance for currency asset (e.g. 'btc' or 'mxn')."""
         path = "/v3/balance/"
         raw_data = self._request("GET", path, auth_required=True)
-        envelope = BitsoApiResponse[BitsoBalancePayload].model_validate(raw_data)
+        envelope = BitsoApiResponseDTO[BitsoBalanceDTO].model_validate(raw_data)
 
         if envelope.payload is None:
             raise ExchangeError(f"Balance response missing payload: {raw_data}")
@@ -185,7 +185,7 @@ class LiveBitsoAdapter(ExchangePort):
 
         path = "/v3/orders/"
         raw_data = self._request("POST", path, auth_required=True, payload=order_body)
-        envelope = BitsoApiResponse[BitsoOrderPayload].model_validate(raw_data)
+        envelope = BitsoApiResponseDTO[BitsoOrderDTO].model_validate(raw_data)
 
         if envelope.payload is None or not envelope.payload.oid:
             raise ExchangeError(f"Bitso accepted order but returned no order ID: {raw_data}")

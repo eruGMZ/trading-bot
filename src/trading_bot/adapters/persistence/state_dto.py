@@ -1,12 +1,12 @@
-"""Pydantic schemas for state persistence and serialization boundaries."""
+"""Pydantic DTOs for state persistence and serialization boundaries."""
 
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class PositionDiskSchema(BaseModel):
-    """Disk serialization schema for an open position."""
+class PositionDiskDTO(BaseModel):
+    """Disk serialization DTO for an open position."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -16,8 +16,8 @@ class PositionDiskSchema(BaseModel):
     high_since_entry: Decimal
 
 
-class StateDiskSchema(BaseModel):
-    """Disk serialization schema for bot state.json file."""
+class StateDiskDTO(BaseModel):
+    """Disk serialization DTO for bot state.json file."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -25,7 +25,7 @@ class StateDiskSchema(BaseModel):
     halt_reason: str | None = None
     mode: str = "dry_run"
     day: str = Field(description="ISO date string YYYY-MM-DD of the trading day")
-    position: PositionDiskSchema | None = None
+    position: PositionDiskDTO | None = None
     trades_today: int = 0
     losses_today: int = 0
     pnl_today: Decimal = Decimal("0")

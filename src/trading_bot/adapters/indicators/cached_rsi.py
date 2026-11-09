@@ -16,8 +16,8 @@ from trading_bot.ports.signal_provider import SignalProviderPort
 log = logging.getLogger(__name__)
 
 
-class RsiCachePayload(BaseModel):
-    """Pydantic boundary model for the rsi_cache.json file."""
+class RsiCacheDTO(BaseModel):
+    """Pydantic boundary DTO for the rsi_cache.json file."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -71,17 +71,17 @@ class CachedRsiSignalProvider(SignalProviderPort):
         try:
             content = self._cache_file.read_text(encoding="utf-8")
             raw = json.loads(content)
-            payload = RsiCachePayload.model_validate(raw)
+            dto = RsiCacheDTO.model_validate(raw)
         except Exception:
             return None
 
         current_time = time.time() if now is None else now
-        age = current_time - payload.timestamp
+        age = current_time - dto.timestamp
         if age < 0 or age > self._max_age:
             return None
 
-        validated_val = validate_rsi(payload.rsi)
+        validated_val = validate_rsi(dto.rsi)
         if validated_val is None:
             return None
 
-        return validated_val, payload.timestamp
+        return validated_val, dto.timestamp

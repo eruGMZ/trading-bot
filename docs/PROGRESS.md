@@ -41,6 +41,7 @@
 - [x] Add fault-injection tests (network timeouts mid-order, non-JSON 502 responses, atomic file contention).
 - [x] Pass `ruff check`, `mypy --strict`, and `pytest -v` with zero warnings.
 - [x] Prune all legacy monolithic root `.py` files and supersede with `src-layout` package.
+- [x] Refactor adapter boundaries to standard domain-prefixed DTO convention (`bitso_dto.py`, `telegram_dto.py`, `state_dto.py`) to eliminate generic `schemas.py` ambiguity.
 
 ---
 

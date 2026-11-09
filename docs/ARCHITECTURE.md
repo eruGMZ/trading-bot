@@ -37,21 +37,21 @@ trading-bot/
 │       │   ├── state_store.py       # StateStorePort
 │       │   ├── signal_provider.py   # SignalProviderPort
 │       │   └── trade_repository.py  # TradeRepositoryPort
-│       ├── adapters/                # External I/O & Pydantic Payload Schemas
+│       ├── adapters/                # External I/O & Pydantic Payload DTOs
 │       │   ├── bitso/
-│       │   │   ├── schemas.py       # Pydantic models for Bitso JSON payloads
+│       │   │   ├── bitso_dto.py     # Pydantic DTOs for Bitso JSON payloads
 │       │   │   ├── client.py        # LiveBitsoAdapter (HTTP + HMAC)
 │       │   │   └── paper.py         # PaperTradingAdapter (Dry-run simulation)
 │       │   ├── telegram/
-│       │   │   ├── schemas.py       # Pydantic models for Telegram updates
+│       │   │   ├── telegram_dto.py  # Pydantic DTOs for Telegram updates
 │       │   │   ├── client.py        # Telegram HTTP client
 │       │   │   └── dispatcher.py    # Command router (/status, /stop, /resume)
 │       │   ├── persistence/
-│       │   │   ├── schemas.py       # Pydantic disk schemas for state.json
+│       │   │   ├── state_dto.py     # Pydantic disk DTOs for state.json
 │       │   │   ├── json_state.py    # Atomic POSIX file persistence (os.replace)
 │       │   │   └── sqlite_trades.py # SQLite WAL repository (TEXT Decimal storage)
 │       │   └── indicators/
-│       │       └── cached_rsi.py    # Pydantic-validated atomic RSI cache reader
+│       │       └── cached_rsi.py    # Pydantic-validated atomic RSI cache reader & DTO
 │       └── application/             # Orchestration & Lifecycle
 │           ├── state_manager.py     # Thread-safe coordinator returning frozen snapshots
 │           ├── use_cases/

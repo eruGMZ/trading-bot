@@ -6,7 +6,7 @@ from typing import Any
 import requests
 from pydantic import SecretStr
 
-from trading_bot.adapters.telegram.schemas import TelegramResponse, TelegramUpdate
+from trading_bot.adapters.telegram.telegram_dto import TelegramResponseDTO, TelegramUpdateDTO
 from trading_bot.ports.notifier import NotifierPort
 
 log = logging.getLogger(__name__)
@@ -99,7 +99,7 @@ class TelegramAdapter(NotifierPort):
                 log.error("Telegram getUpdates failed: %s", data.get("description", data))
                 return []
 
-            envelope = TelegramResponse[list[TelegramUpdate]].model_validate(data)
+            envelope = TelegramResponseDTO[list[TelegramUpdateDTO]].model_validate(data)
             if not envelope.result:
                 return []
 

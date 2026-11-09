@@ -10,7 +10,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-from trading_bot.adapters.persistence.schemas import StateDiskSchema
+from trading_bot.adapters.persistence.state_dto import StateDiskDTO
 from trading_bot.core.exceptions import StateError
 from trading_bot.ports.state_store import StateStorePort
 
@@ -36,7 +36,7 @@ class JsonStateStore(StateStorePort):
         """Generate default valid state dictionary."""
         effective_mode = mode or self._default_mode
         effective_day = day or date.today().isoformat()
-        schema = StateDiskSchema(mode=effective_mode, day=effective_day)
+        schema = StateDiskDTO(mode=effective_mode, day=effective_day)
         return schema.model_dump(mode="python")
 
     def load(self) -> dict[str, Any]:
@@ -57,7 +57,7 @@ class JsonStateStore(StateStorePort):
                 raise StateError(f"State file {self._path} must contain a JSON object")
 
             try:
-                validated = StateDiskSchema.model_validate(raw)
+                validated = StateDiskDTO.model_validate(raw)
             except Exception as err:
                 raise StateError(f"State schema validation failed for {self._path}: {err}") from err
 
@@ -67,7 +67,7 @@ class JsonStateStore(StateStorePort):
         """Atomically persist state data to disk."""
         with self._lock:
             try:
-                validated = StateDiskSchema.model_validate(state_data)
+                validated = StateDiskDTO.model_validate(state_data)
             except Exception as err:
                 raise StateError(f"Cannot save invalid state data: {err}") from err
 

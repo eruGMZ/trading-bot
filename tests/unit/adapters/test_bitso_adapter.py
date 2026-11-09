@@ -7,9 +7,9 @@ from unittest import mock
 import pytest
 import requests
 
+from trading_bot.adapters.bitso.bitso_dto import BitsoTickerDTO
 from trading_bot.adapters.bitso.client import LiveBitsoAdapter
 from trading_bot.adapters.bitso.paper import PaperTradingAdapter
-from trading_bot.adapters.bitso.schemas import BitsoTickerPayload
 from trading_bot.core.exceptions import ExchangeError
 from trading_bot.domain.models import Quote
 
@@ -31,14 +31,14 @@ def _mock_response(
 
 
 def test_bitso_ticker_schema_and_spread() -> None:
-    """Verify BitsoTickerPayload calculates spread_pct automatically."""
+    """Verify BitsoTickerDTO calculates spread_pct automatically."""
     data = {
         "book": "btc_mxn",
         "last": "1000000.00",
         "bid": "995000.00",
         "ask": "1005000.00",
     }
-    ticker = BitsoTickerPayload.model_validate(data)
+    ticker = BitsoTickerDTO.model_validate(data)
     assert ticker.last == Decimal("1000000.00")
     # spread = (1005000 - 995000) / 1005000 = 10000 / 1005000
     expected_spread = Decimal("10000") / Decimal("1005000")

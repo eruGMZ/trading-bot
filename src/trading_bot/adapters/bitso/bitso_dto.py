@@ -1,4 +1,4 @@
-"""Pydantic schemas for validating and parsing Bitso REST API responses."""
+"""Pydantic DTOs for validating and parsing Bitso REST API responses."""
 
 from decimal import Decimal
 from typing import Generic, TypeVar
@@ -8,8 +8,8 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 T = TypeVar("T")
 
 
-class BitsoErrorPayload(BaseModel):
-    """Bitso error detail schema."""
+class BitsoErrorDTO(BaseModel):
+    """Bitso error detail DTO."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -17,8 +17,8 @@ class BitsoErrorPayload(BaseModel):
     message: str | None = None
 
 
-class BitsoTickerPayload(BaseModel):
-    """Validated ticker payload from Bitso /v3/ticker endpoint."""
+class BitsoTickerDTO(BaseModel):
+    """Validated ticker DTO from Bitso /v3/ticker endpoint."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -30,7 +30,7 @@ class BitsoTickerPayload(BaseModel):
     spread_pct: Decimal = Field(default=Decimal("0"))
 
     @model_validator(mode="after")
-    def _calculate_spread(self) -> "BitsoTickerPayload":
+    def _calculate_spread(self) -> "BitsoTickerDTO":
         if self.ask > Decimal("0"):
             spread = (self.ask - self.bid) / self.ask
             object.__setattr__(self, "spread_pct", spread)
@@ -39,8 +39,8 @@ class BitsoTickerPayload(BaseModel):
         return self
 
 
-class BitsoBalanceItem(BaseModel):
-    """Single currency balance item."""
+class BitsoBalanceItemDTO(BaseModel):
+    """Single currency balance item DTO."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -50,27 +50,27 @@ class BitsoBalanceItem(BaseModel):
     total: Decimal | None = None
 
 
-class BitsoBalancePayload(BaseModel):
-    """Payload returned by /v3/balance endpoint."""
+class BitsoBalanceDTO(BaseModel):
+    """Payload DTO returned by /v3/balance endpoint."""
 
     model_config = ConfigDict(extra="ignore")
 
-    balances: list[BitsoBalanceItem]
+    balances: list[BitsoBalanceItemDTO]
 
 
-class BitsoOrderPayload(BaseModel):
-    """Payload returned upon placing an order."""
+class BitsoOrderDTO(BaseModel):
+    """Payload DTO returned upon placing an order."""
 
     model_config = ConfigDict(extra="ignore")
 
     oid: str
 
 
-class BitsoApiResponse(BaseModel, Generic[T]):
-    """Generic envelope for Bitso REST responses."""
+class BitsoApiResponseDTO(BaseModel, Generic[T]):
+    """Generic envelope DTO for Bitso REST responses."""
 
     model_config = ConfigDict(extra="ignore")
 
     success: bool
     payload: T | None = None
-    error: BitsoErrorPayload | None = None
+    error: BitsoErrorDTO | None = None

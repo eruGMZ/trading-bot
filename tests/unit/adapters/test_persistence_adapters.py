@@ -6,14 +6,14 @@ from pathlib import Path
 import pytest
 
 from trading_bot.adapters.persistence.json_state import JsonStateStore
-from trading_bot.adapters.persistence.schemas import PositionDiskSchema, StateDiskSchema
 from trading_bot.adapters.persistence.sqlite_trades import SqliteTradeRepository
+from trading_bot.adapters.persistence.state_dto import PositionDiskDTO, StateDiskDTO
 from trading_bot.core.exceptions import StateError
 
 
 def test_state_disk_schemas() -> None:
-    """Verify validation and serialization of state schemas."""
-    pos = PositionDiskSchema(
+    """Verify validation and serialization of state DTOs."""
+    pos = PositionDiskDTO(
         entry_price=Decimal("1000000.50"),
         amount_btc=Decimal("0.00500000"),
         entry_time="2026-11-09T10:00:00",
@@ -21,7 +21,7 @@ def test_state_disk_schemas() -> None:
     )
     assert pos.entry_price == Decimal("1000000.50")
 
-    state = StateDiskSchema(
+    state = StateDiskDTO(
         day="2026-11-09",
         mode="operational",
         position=pos,

@@ -1,4 +1,4 @@
-"""Pydantic schemas for Telegram Bot API boundary payloads."""
+"""Pydantic DTOs for Telegram Bot API boundary payloads."""
 
 from typing import Generic, TypeVar
 
@@ -7,8 +7,8 @@ from pydantic import BaseModel, ConfigDict, Field
 T = TypeVar("T")
 
 
-class TelegramChat(BaseModel):
-    """Telegram chat model."""
+class TelegramChatDTO(BaseModel):
+    """Telegram chat DTO."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -18,8 +18,8 @@ class TelegramChat(BaseModel):
     username: str | None = None
 
 
-class TelegramUser(BaseModel):
-    """Telegram user model."""
+class TelegramUserDTO(BaseModel):
+    """Telegram user DTO."""
 
     model_config = ConfigDict(extra="ignore")
 
@@ -29,29 +29,29 @@ class TelegramUser(BaseModel):
     username: str | None = None
 
 
-class TelegramMessage(BaseModel):
-    """Telegram message object."""
+class TelegramMessageDTO(BaseModel):
+    """Telegram message DTO."""
 
     model_config = ConfigDict(extra="ignore")
 
     message_id: int
-    chat: TelegramChat
+    chat: TelegramChatDTO
     text: str | None = None
     date: int | None = None
-    from_user: TelegramUser | None = Field(default=None, alias="from")
+    from_user: TelegramUserDTO | None = Field(default=None, alias="from")
 
 
-class TelegramUpdate(BaseModel):
-    """Telegram update object received from getUpdates."""
+class TelegramUpdateDTO(BaseModel):
+    """Telegram update DTO received from getUpdates."""
 
     model_config = ConfigDict(extra="ignore")
 
     update_id: int
-    message: TelegramMessage | None = None
+    message: TelegramMessageDTO | None = None
 
 
-class TelegramResponse(BaseModel, Generic[T]):
-    """Generic envelope for Telegram Bot API responses."""
+class TelegramResponseDTO(BaseModel, Generic[T]):
+    """Generic envelope DTO for Telegram Bot API responses."""
 
     model_config = ConfigDict(extra="ignore")
 

@@ -23,6 +23,7 @@ We enforce a strict split between internal domain representations and external I
   - Environment & `.env` configuration (`config/settings.py`).
   - External HTTP API payloads (Bitso REST responses, Telegram updates).
   - Disk serialization schemas (`state.json`, `rsi_cache.json`).
+- **Adapter DTO & Payload Naming Convention:** Infrastructure data transfer objects and validation schemas must be co-located inside their respective adapters using descriptive `snake_case` file names prefixed with the domain (e.g., `bitso_dto.py`, `telegram_dto.py`, `state_dto.py`), containing classes named in `PascalCase` with a `DTO` suffix (e.g., `BitsoTickerDTO`, `TelegramUpdateDTO`, `StateDiskDTO`). Generic file names like `schemas.py` are disallowed to prevent editor tab ambiguity.
 
 ### 3.2. Financial Precision (`Decimal` Only)
 - **NEVER use `float`** for prices, cryptocurrency amounts, fiat balances, fees, PnL calculations, or percentages.
