@@ -19,6 +19,7 @@ ENV/
 .coverage
 htmlcov/
 .tox/
+backtest/
 
 # Logs y archivos generados en ejecución
 *.log
