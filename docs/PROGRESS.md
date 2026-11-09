@@ -1,8 +1,3 @@
----
-
-### 3. `docs/PROGRESS.md` (Ubicado en `./docs/PROGRESS.md`)
-
-```markdown
 # PROGRESS.md — Refactoring & Production-Readiness Tracker
 
 **Branch:** `refactor/production-readiness`  
@@ -17,10 +12,10 @@
 - [x] Create `docs/PROGRESS.md` for phase tracking.
 
 ## Phase 1: Packaging, Scaffolding & Config Boundary
-- [ ] Create `pyproject.toml` (`hatchling`, `pydantic`, `pydantic-settings`, `mypy --strict`, `ruff`, `pytest`).
-- [ ] Create directory tree under `src/trading_bot/` and `tests/{unit,integration}/`.
-- [ ] Implement `src/trading_bot/config/settings.py` using `pydantic-settings` (remove import-time `load_dotenv()` side effects and hardcoded user paths).
-- [ ] Migrate `logsafety.py` $\rightarrow$ `src/trading_bot/core/logging.py` with strict typing.
+- [x] Create `pyproject.toml` (`hatchling`, `pydantic`, `pydantic-settings`, `mypy --strict`, `ruff`, `pytest`).
+- [x] Create directory tree under `src/trading_bot/` and `tests/{unit,integration}/`.
+- [x] Implement `src/trading_bot/config/settings.py` using `pydantic-settings` (remove import-time `load_dotenv()` side effects and hardcoded user paths).
+- [x] Migrate `logsafety.py` $\rightarrow$ `src/trading_bot/core/logging.py` with strict typing.
 
 ## Phase 2: Pure Domain Layer (`@dataclass` + `Decimal`)
 - [ ] Implement `src/trading_bot/core/money.py` and `src/trading_bot/core/exceptions.py`.
