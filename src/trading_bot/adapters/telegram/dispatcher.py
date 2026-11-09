@@ -150,4 +150,4 @@ class TelegramCommandDispatcher:
                 )
             return "📊 Sin operaciones cerradas todavía."
 
-        return "Comandos: /status /balance /stop /start /pnl /metrics"
+        return "Comandos: /status /balance /stop /start /pnl /metrics /help"

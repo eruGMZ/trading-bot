@@ -6,52 +6,31 @@
 ---
 
 ## Phase 0: Governance & Harness Setup
-- [x] Complete architectural and code quality audit (`docs/analisis_bot.md`).
-- [x] Create root `AGENTS.md` router with Python 3.11+ stack, Decimal rules, and `@dataclass` vs `Pydantic` boundaries.
-- [x] Create `docs/ARCHITECTURE.md` defining the Hexagonal `src-layout`.
-- [x] Create `docs/PROGRESS.md` for phase tracking.
+Established the engineering foundation by auditing the legacy monolithic trading bot, authoring the root `AGENTS.md` governance router with Python 3.11+ strict typing and financial precision rules, defining the Hexagonal (`src-layout`) architecture in `docs/ARCHITECTURE.md`, and initializing the milestone tracking document in `docs/PROGRESS.md`.
 
 ## Phase 1: Packaging, Scaffolding & Config Boundary
-- [x] Create `pyproject.toml` (`hatchling`, `pydantic`, `pydantic-settings`, `mypy --strict`, `ruff`, `pytest`).
-- [x] Create directory tree under `src/trading_bot/` and `tests/{unit,integration}/`.
-- [x] Implement `src/trading_bot/config/settings.py` using `pydantic-settings` (remove import-time `load_dotenv()` side effects and hardcoded user paths).
-- [x] Migrate `logsafety.py` $\rightarrow$ `src/trading_bot/core/logging.py` with strict typing.
+Scaffolded the modern packaging environment via `pyproject.toml` (`hatchling`, `pydantic-settings`, `mypy --strict`, `ruff`, and `pytest`), structured the `src/trading_bot/` and `tests/` hierarchies, established immutable settings management in `settings.py` eliminating import-time side effects and hardcoded paths, and migrated logging utilities into a strictly typed core logging module with sensitive credential masking.
 
 ## Phase 2: Pure Domain Layer (`@dataclass` + `Decimal`)
-- [x] Implement `src/trading_bot/core/money.py` and `src/trading_bot/core/exceptions.py`.
-- [x] Define `@dataclass(frozen=True, slots=True)` models in `src/trading_bot/domain/models.py` (`Quote`, `Position`, `BotSnapshot`, `TradeMetrics`).
-- [x] Refactor `risk.py` $\rightarrow$ `src/trading_bot/domain/risk_engine.py` (100% `Decimal`, English docstrings, zero I/O).
-- [x] Refactor `signals.py` threshold logic $\rightarrow$ `src/trading_bot/domain/signals.py`.
+Implemented pure financial primitives and exceptions with zero external I/O, modeled domain entities (`Quote`, `Position`, `BotSnapshot`, `TradeMetrics`) using immutable `@dataclass(frozen=True, slots=True)` structures, and migrated all trading business logic—including RSI threshold calculations, position sizing, stop-loss triggers, and drawdown controls—to pure functions operating exclusively with `Decimal` arithmetic.
 
 ## Phase 3: Ports & Infrastructure Adapters (`Pydantic` Boundaries)
-- [x] Define `typing.Protocol` interfaces in `src/trading_bot/ports/`.
-- [x] Implement `adapters/bitso/` (`schemas.py` with Pydantic, `LiveBitsoAdapter`, and `PaperTradingAdapter`).
-- [x] Implement `adapters/persistence/json_state.py` (Pydantic disk validation + atomic `os.replace`) and `application/state_manager.py`.
-- [x] Implement `adapters/persistence/sqlite_trades.py` (SQLite WAL mode + `TEXT` Decimal persistence).
-- [x] Implement `adapters/indicators/cached_rsi.py` and update `rsi_updater` for atomic file writes.
-- [x] Implement `adapters/telegram/` (`schemas.py`, `client.py`, `dispatcher.py`).
+Defined abstract interface protocols in `ports/` and implemented concrete infrastructure adapters bounded by domain-prefixed Pydantic DTOs. Delivered live and paper-trading Bitso exchange adapters, atomic POSIX state file persistence (`os.replace`), a SQLite trade journal configured with Write-Ahead Logging (WAL) and exact `Decimal` text storage, a cached RSI indicator adapter, and a Telegram notification and remote control client.
 
 ## Phase 4: Application Orchestration & Lifecycle
-- [x] Extract `reconcile.py` and `process_tick.py` use cases with Dependency Injection.
-- [x] Implement `runner.py` with `SIGTERM`/`SIGINT` handlers and `threading.Event` graceful shutdown.
-- [x] Sanitize `scripts/` (`systemd` unit and shell scripts) to remove hardcoded paths.
+Constructed the application orchestration layer by decoupling use cases (`reconcile.py` and `process_tick.py`) through explicit dependency injection, engineered the daemon lifecycle in `runner.py` with cooperative shutdown managed via `threading.Event` primitives wired to `SIGINT` and `SIGTERM` OS signals, and sanitized operational scripts to eliminate hardcoded paths.
 
 ## Phase 5: Verification & Test Suite Overhaul
-- [x] Migrate and split `test_phase1.py` / `test_phase3.py` into `tests/unit/` and `tests/integration/`.
-- [x] Add fault-injection tests (network timeouts mid-order, non-JSON 502 responses, atomic file contention).
-- [x] Pass `ruff check`, `mypy --strict`, and `pytest -v` with zero warnings.
-- [x] Prune all legacy monolithic root `.py` files and supersede with `src-layout` package.
-- [x] Refactor adapter boundaries to standard domain-prefixed DTO convention (`bitso_dto.py`, `telegram_dto.py`, `state_dto.py`) to eliminate generic `schemas.py` ambiguity.
-- [x] Create comprehensive, production-grade `README.md` covering Hexagonal architecture, packaging, CLI entrypoints, risk controls, and quality gates.
+Overhauled the test suite into dedicated unit and integration suites featuring fault-injection scenarios (network timeouts, Cloudflare 502 HTML errors, file contention), standardized adapter payload schemas into domain-prefixed DTOs (`bitso_dto.py`, `telegram_dto.py`, `state_dto.py`), pruned all legacy monolithic root scripts, and authored comprehensive production documentation in `README.md`.
+
+## Phase 6: Post-Audit Hardening & Remediation
+Remediated post-audit findings by implementing the standalone `rsi-updater` CLI entrypoint with Chrome DevTools Protocol (CDP) WebSocket evaluation and graceful signal management, synchronized live Telegram commands across dispatcher and documentation, cleaned legacy dependencies (`requirements.txt`), and repaired documentation cross-references to ensure strict repository integrity.
+
+## Phase 7: Future Enhancements (To Be Defined)
+The scope, technical specifications, and implementation roadmap for this phase are currently to be defined (TBD), reserved for upcoming quantitative strategy expansions, secondary signal integrations, advanced execution algorithms, and operational tooling enhancements.
 
 ---
 
-## Status: COMPLETE 🎉
-All 5 phases of the production-readiness refactoring roadmap are fully executed and verified:
-- Clean Hexagonal Architecture (`src/trading_bot/`)
-- 100% Strict Typing with `mypy --strict`
-- Zero Linting Warnings with `ruff`
-- 105 Automated Unit & Integration Tests (91% Package Coverage)
-- Strict Financial Precision with `Decimal` arithmetic exclusively
-- Concurrency Safety (POSIX atomic swaps, SQLite WAL mode)
-- Zero Global Mutable State and Full Dependency Injection
+## Current Status
+- **Phases 0–6:** COMPLETED 🎉 (Verified across 118 unit and integration tests, strict static typing with `mypy --strict`, zero `ruff` lint warnings, and 100% `Decimal` precision).
+- **Phase 7:** Pending definition and roadmap scoping.

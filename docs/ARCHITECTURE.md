@@ -15,8 +15,7 @@ trading-bot/
 ├── AGENTS.md                        # Root AI Router & Core Guardrails
 ├── docs/
 │   ├── ARCHITECTURE.md              # System topology & invariants (this file)
-│   ├── PROGRESS.md                  # Phase-by-phase refactoring tracker
-│   └── analisis_bot.md              # Initial architectural audit
+│   └── PROGRESS.md                  # Phase-by-phase refactoring tracker
 ├── src/
 │   └── trading_bot/
 │       ├── __init__.py
@@ -45,7 +44,7 @@ trading-bot/
 │       │   ├── telegram/
 │       │   │   ├── telegram_dto.py  # Pydantic DTOs for Telegram updates
 │       │   │   ├── client.py        # Telegram HTTP client
-│       │   │   └── dispatcher.py    # Command router (/status, /stop, /resume)
+│       │   │   └── dispatcher.py    # Command router (/status, /stop, /start, etc.)
 │       │   ├── persistence/
 │       │   │   ├── state_dto.py     # Pydantic disk DTOs for state.json
 │       │   │   ├── json_state.py    # Atomic POSIX file persistence (os.replace)

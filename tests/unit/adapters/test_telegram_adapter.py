@@ -146,6 +146,29 @@ def test_telegram_dispatcher_commands() -> None:
     blocked_resp = dispatcher.dispatch("/start", halted_snap, state_controller=mock_ctrl)
     assert "No puedo reactivar: bot bloqueado" in blocked_resp
 
+    # /balance in dry run
+    bal_resp = dispatcher.dispatch("/balance", snap)
+    assert "DRY-RUN — balance real no disponible" in bal_resp
+
+    # /balance in operational mode with exchange
+    live_dispatcher = TelegramCommandDispatcher(
+        allowed_chat_id="12345",
+        is_dry_run=False,
+    )
+    mock_exchange = mock.Mock()
+    mock_exchange.get_available_balance.side_effect = (
+        lambda c: Decimal("1000.50") if c == "mxn" else Decimal("0.05000000")
+    )
+    live_bal_resp = live_dispatcher.dispatch("/balance", snap, exchange=mock_exchange)
+    assert "MXN: 1000.50" in live_bal_resp
+    assert "BTC: 0.05000000" in live_bal_resp
+
+    # /help and unknown fallback
+    help_resp = dispatcher.dispatch("/help", snap)
+    assert "Comandos: /status /balance /stop /start /pnl /metrics /help" in help_resp
+    unknown_resp = dispatcher.dispatch("/foobar", snap)
+    assert "Comandos: /status /balance /stop /start /pnl /metrics /help" in unknown_resp
+
 
 def test_telegram_dispatcher_metrics() -> None:
     """Verify /metrics command retrieves performance metrics from repository."""

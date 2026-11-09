@@ -16,7 +16,7 @@ An institutional-grade, strictly typed spot trading daemon engineered for the **
 - **Hexagonal Architecture (`src-layout`):** Total decoupling between pure domain logic, abstract boundary ports (`typing.Protocol`), infrastructure adapters (`pydantic` DTO boundaries), and application orchestration.
 - **Resilient Concurrency & Lifecycle:** Thread-safe state coordination (`StateManager`), atomic POSIX file persistence (`tempfile` + `os.replace`), SQLite Write-Ahead Logging (`WAL`), and cooperative graceful shutdown (`SIGTERM`/`SIGINT` via `threading.Event`).
 - **Comprehensive Risk Controls:** Dynamic volatility position sizing, high-watermark trailing stops, daily loss cutoff caps, global equity drawdown kill switch, and automated startup/daily balance reconciliation.
-- **Telegram Control Plane:** Dedicated bi-directional Telegram polling listener for real-time trade alerts and operator remote control (`/status`, `/pause`, `/resume`, `/metrics`, `/close`).
+- **Telegram Control Plane:** Dedicated bi-directional Telegram polling listener for real-time trade alerts and operator remote control (`/status`, `/balance`, `/stop`, `/start`, `/pnl`, `/metrics`, `/help`).
 
 ---
 
@@ -117,11 +117,12 @@ The daemon cooperatively listens for `SIGINT` (Ctrl+C) and `SIGTERM` signals. Up
 
 When configured with an authorized `TELEGRAM_CHAT_ID`, the daemon supports operator commands:
 
-- `/status` — View current operational state, open position, PnL today/total, and equity.
-- `/pause` — Suspend new market entries without closing existing positions.
-- `/resume` — Re-enable automated order execution.
-- `/metrics` — Display historical performance (win rate, profit factor, expectancy, max drawdown).
-- `/close` — Manually market-sell open position and update accounting records.
+- `/status` — View current operational state (dry-run/operational, active/stopped), open position, daily trades count, PnL, equity, and drawdown.
+- `/balance` — Check available MXN and BTC balances on Bitso (operational mode only).
+- `/stop` — Safely stop the trading daemon (`running=False`), preventing new order entries while maintaining state.
+- `/start` — Reactivate automated order execution (resumes trading if no critical halt condition exists).
+- `/pnl` — Display today's and cumulative session PnL alongside current equity.
+- `/metrics` — Display historical performance statistics (win rate, expectancy, profit factor, max drawdown, gross profit/loss).
 - `/help` — List available operator commands.
 
 ---
