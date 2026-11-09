@@ -42,6 +42,7 @@
 - [x] Pass `ruff check`, `mypy --strict`, and `pytest -v` with zero warnings.
 - [x] Prune all legacy monolithic root `.py` files and supersede with `src-layout` package.
 - [x] Refactor adapter boundaries to standard domain-prefixed DTO convention (`bitso_dto.py`, `telegram_dto.py`, `state_dto.py`) to eliminate generic `schemas.py` ambiguity.
+- [x] Create comprehensive, production-grade `README.md` covering Hexagonal architecture, packaging, CLI entrypoints, risk controls, and quality gates.
 
 ---
 
