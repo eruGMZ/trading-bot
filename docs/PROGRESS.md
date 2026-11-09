@@ -24,12 +24,12 @@
 - [x] Refactor `signals.py` threshold logic $\rightarrow$ `src/trading_bot/domain/signals.py`.
 
 ## Phase 3: Ports & Infrastructure Adapters (`Pydantic` Boundaries)
-- [ ] Define `typing.Protocol` interfaces in `src/trading_bot/ports/`.
-- [ ] Implement `adapters/bitso/` (`schemas.py` with Pydantic, `LiveBitsoAdapter`, and `PaperTradingAdapter`).
-- [ ] Implement `adapters/persistence/json_state.py` (Pydantic disk validation + atomic `os.replace`) and `application/state_manager.py`.
-- [ ] Implement `adapters/persistence/sqlite_trades.py` (SQLite WAL mode + `TEXT` Decimal persistence).
-- [ ] Implement `adapters/indicators/cached_rsi.py` and update `rsi_updater` for atomic file writes.
-- [ ] Implement `adapters/telegram/` (`schemas.py`, `client.py`, `dispatcher.py`).
+- [x] Define `typing.Protocol` interfaces in `src/trading_bot/ports/`.
+- [x] Implement `adapters/bitso/` (`schemas.py` with Pydantic, `LiveBitsoAdapter`, and `PaperTradingAdapter`).
+- [x] Implement `adapters/persistence/json_state.py` (Pydantic disk validation + atomic `os.replace`) and `application/state_manager.py`.
+- [x] Implement `adapters/persistence/sqlite_trades.py` (SQLite WAL mode + `TEXT` Decimal persistence).
+- [x] Implement `adapters/indicators/cached_rsi.py` and update `rsi_updater` for atomic file writes.
+- [x] Implement `adapters/telegram/` (`schemas.py`, `client.py`, `dispatcher.py`).
 
 ## Phase 4: Application Orchestration & Lifecycle
 - [ ] Extract `reconcile.py` and `process_tick.py` use cases with Dependency Injection.
