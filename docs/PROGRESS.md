@@ -18,10 +18,10 @@
 - [x] Migrate `logsafety.py` $\rightarrow$ `src/trading_bot/core/logging.py` with strict typing.
 
 ## Phase 2: Pure Domain Layer (`@dataclass` + `Decimal`)
-- [ ] Implement `src/trading_bot/core/money.py` and `src/trading_bot/core/exceptions.py`.
-- [ ] Define `@dataclass(frozen=True, slots=True)` models in `src/trading_bot/domain/models.py` (`Quote`, `Position`, `BotSnapshot`, `TradeMetrics`).
-- [ ] Refactor `risk.py` $\rightarrow$ `src/trading_bot/domain/risk_engine.py` (100% `Decimal`, English docstrings, zero I/O).
-- [ ] Refactor `signals.py` threshold logic $\rightarrow$ `src/trading_bot/domain/signals.py`.
+- [x] Implement `src/trading_bot/core/money.py` and `src/trading_bot/core/exceptions.py`.
+- [x] Define `@dataclass(frozen=True, slots=True)` models in `src/trading_bot/domain/models.py` (`Quote`, `Position`, `BotSnapshot`, `TradeMetrics`).
+- [x] Refactor `risk.py` $\rightarrow$ `src/trading_bot/domain/risk_engine.py` (100% `Decimal`, English docstrings, zero I/O).
+- [x] Refactor `signals.py` threshold logic $\rightarrow$ `src/trading_bot/domain/signals.py`.
 
 ## Phase 3: Ports & Infrastructure Adapters (`Pydantic` Boundaries)
 - [ ] Define `typing.Protocol` interfaces in `src/trading_bot/ports/`.
