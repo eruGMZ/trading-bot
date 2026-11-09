@@ -6,10 +6,11 @@ Todos los experimentos y configuraciones evaluadas, incluidos los rechazados. El
 
 | Concepto | Valor |
 |---|---|
-| Familias evaluadas | 1 de 5 (FASE-0: Mean Reversion) |
-| Familias disponibles | **4** |
+| Familias evaluadas | 2 de 5 (FASE-0: Mean Reversion; EXP-0001: Trend Following) |
+| Familias disponibles | **3** |
+| Configuraciones preregistradas (aún sin ejecutar) | 4 de 20 (EXP-0001: A, B, C, D) |
 | Configuraciones evaluadas sobre Train | 4 de 20 (A, B, E1, E2 — FASE-0) |
-| Configuraciones disponibles | **16** |
+| Configuraciones disponibles (tras EXP-0001) | **12** |
 | Presupuesto global | **Aprobado** (D-016, 2026-11-08) — 5 familias, 4 configs/familia, 20 configs total |
 | LOCKBOX_OOS_001 | **No consumido** |
 
@@ -35,6 +36,7 @@ Toda **configuración** evaluada sobre Train cuenta contra el presupuesto, indep
 | ID | Fecha | Hipótesis | Configuraciones | Segmentos | Dictamen | Referencia |
 |---|---|---|---|---|---|---|
 | FASE-0 | 2026-11-08 | H-000 (Mean Reversion H1) | 4 (A, B, E1, E2) | Train | RECHAZADO | `backtest/REPORTE_FASE0.md`, `25f0e3f` |
+| EXP-0001 | 2026-11-09 | H-001 (Trend Following H4) | 4 (A primaria, B/C/D exploratorias) — **preregistradas** | Train (pendiente) | PREREGISTRO CONGELADO — Train autorizado (D-024) | `EXP-0001/preregistration.md` v4 |
 
 ## Uso del lockbox
 
