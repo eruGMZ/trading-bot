@@ -1,0 +1,47 @@
+---
+
+### 3. `docs/PROGRESS.md` (Ubicado en `./docs/PROGRESS.md`)
+
+```markdown
+# PROGRESS.md — Refactoring & Production-Readiness Tracker
+
+**Branch:** `refactor/production-readiness`  
+**Router:** See root `AGENTS.md` and `docs/ARCHITECTURE.md` before executing any task.
+
+---
+
+## Phase 0: Governance & Harness Setup
+- [x] Complete architectural and code quality audit (`docs/analisis_bot.md`).
+- [x] Create root `AGENTS.md` router with Python 3.11+ stack, Decimal rules, and `@dataclass` vs `Pydantic` boundaries.
+- [x] Create `docs/ARCHITECTURE.md` defining the Hexagonal `src-layout`.
+- [x] Create `docs/PROGRESS.md` for phase tracking.
+
+## Phase 1: Packaging, Scaffolding & Config Boundary
+- [ ] Create `pyproject.toml` (`hatchling`, `pydantic`, `pydantic-settings`, `mypy --strict`, `ruff`, `pytest`).
+- [ ] Create directory tree under `src/trading_bot/` and `tests/{unit,integration}/`.
+- [ ] Implement `src/trading_bot/config/settings.py` using `pydantic-settings` (remove import-time `load_dotenv()` side effects and hardcoded user paths).
+- [ ] Migrate `logsafety.py` $\rightarrow$ `src/trading_bot/core/logging.py` with strict typing.
+
+## Phase 2: Pure Domain Layer (`@dataclass` + `Decimal`)
+- [ ] Implement `src/trading_bot/core/money.py` and `src/trading_bot/core/exceptions.py`.
+- [ ] Define `@dataclass(frozen=True, slots=True)` models in `src/trading_bot/domain/models.py` (`Quote`, `Position`, `BotSnapshot`, `TradeMetrics`).
+- [ ] Refactor `risk.py` $\rightarrow$ `src/trading_bot/domain/risk_engine.py` (100% `Decimal`, English docstrings, zero I/O).
+- [ ] Refactor `signals.py` threshold logic $\rightarrow$ `src/trading_bot/domain/signals.py`.
+
+## Phase 3: Ports & Infrastructure Adapters (`Pydantic` Boundaries)
+- [ ] Define `typing.Protocol` interfaces in `src/trading_bot/ports/`.
+- [ ] Implement `adapters/bitso/` (`schemas.py` with Pydantic, `LiveBitsoAdapter`, and `PaperTradingAdapter`).
+- [ ] Implement `adapters/persistence/json_state.py` (Pydantic disk validation + atomic `os.replace`) and `application/state_manager.py`.
+- [ ] Implement `adapters/persistence/sqlite_trades.py` (SQLite WAL mode + `TEXT` Decimal persistence).
+- [ ] Implement `adapters/indicators/cached_rsi.py` and update `rsi_updater` for atomic file writes.
+- [ ] Implement `adapters/telegram/` (`schemas.py`, `client.py`, `dispatcher.py`).
+
+## Phase 4: Application Orchestration & Lifecycle
+- [ ] Extract `reconcile.py` and `process_tick.py` use cases with Dependency Injection.
+- [ ] Implement `runner.py` with `SIGTERM`/`SIGINT` handlers and `threading.Event` graceful shutdown.
+- [ ] Sanitize `scripts/` (`systemd` unit and shell scripts) to remove hardcoded paths.
+
+## Phase 5: Verification & Test Suite Overhaul
+- [ ] Migrate and split `test_phase1.py` / `test_phase3.py` into `tests/unit/` and `tests/integration/`.
+- [ ] Add fault-injection tests (network timeouts mid-order, non-JSON 502 responses, atomic file contention).
+- [ ] Pass `ruff check`, `mypy --strict`, and `pytest -v` with zero warnings.
