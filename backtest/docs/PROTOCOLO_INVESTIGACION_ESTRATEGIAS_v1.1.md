@@ -21,6 +21,7 @@
 | `ARQUITECTURA_QUANT_AGENT_v1.0.md` | Roles, accesos y controles técnicos del lockbox |
 | `INCIDENCIAS.md` | Incidencias de trazabilidad |
 | `EVIDENCIA_AISLAMIENTO_LOCKBOX.md` | Pruebas de las capas de aislamiento |
+| `FUNDAMENTO_HORIZONTE_SWING.md` | Por qué se descartó scalping (1.0.0) y se adoptó Swing (D-025) |
 
 ### Cambios respecto a v1.0
 
@@ -183,7 +184,7 @@ El agente puede proponer familias adicionales compatibles con §3 si identifica 
 
 ## 5. HORIZONTE Y TEMPORALIDADES
 
-El horizonte es Swing Trading: posiciones abiertas durante horas o días. No se impone una temporalidad única antes de investigar.
+El horizonte es Swing Trading: posiciones abiertas durante horas o días. No se impone una temporalidad única antes de investigar. El fundamento de este horizonte —y el cierre del planteamiento de convertir el bot 1.0.0 en scalping— está en `FUNDAMENTO_HORIZONTE_SWING.md` (D-025). Scalping queda fuera del universo: incompatible con el modo de trabajo del operador y con `MAX_TRADES_MONTH = 8` (D-014).
 
 | Temporalidad | Función potencial |
 |---|---|
